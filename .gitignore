@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+dist/
+coverage/
+.DS_Store
+Thumbs.db
+
+# Replit and agent-generated files — never commit these
+.replit
+replit.md
+.agents/
+.local/
+.cache/replit/

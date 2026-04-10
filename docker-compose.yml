@@ -1,0 +1,101 @@
+version: '3.9'
+
+# ============================================================
+# SkillGraph AI – Docker Compose
+# Services: PostgreSQL, Backend API, Frontend Dev Server
+# ============================================================
+
+networks:
+  skillgraph-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+services:
+  # ─── PostgreSQL Database ─────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: skillgraph-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: skillgraph_db
+      POSTGRES_USER: skillgraph_user
+      POSTGRES_PASSWORD: skillgraph_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - skillgraph-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skillgraph_user -d skillgraph_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ─── Backend API ──────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: skillgraph-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://skillgraph_user:skillgraph_password@postgres:5432/skillgraph_db?schema=public
+    ports:
+      - "5000:5000"
+    networks:
+      - skillgraph-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/v1/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ─── Frontend Dev Server ──────────────────────────────────────────────────
+  frontend:
+    image: node:20-alpine
+    container_name: skillgraph-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    networks:
+      - skillgraph-network
+    environment:
+      VITE_API_URL: http://localhost:5000/api/v1
+    depends_on:
+      - backend
+
+  # ─── pgAdmin (Dev tool — optional) ────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: skillgraph-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@skillgraph.ai
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    networks:
+      - skillgraph-network
+    depends_on:
+      - postgres
+    profiles:
+      - tools
