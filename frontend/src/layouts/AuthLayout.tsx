@@ -33,8 +33,8 @@ const AuthLayout: React.FC = () => {
           </h1>
 
           <p className="text-slate-400 text-lg leading-relaxed mb-12">
-            AI-powered adaptive learning that identifies your skill gaps and builds a personalized
-            roadmap to your career goals.
+            AI-powered adaptive learning that identifies your skill gaps and maps a personalized
+            path to your career goals.
           </p>
 
           {/* Feature highlights */}
