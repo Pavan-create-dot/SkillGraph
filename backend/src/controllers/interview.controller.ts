@@ -4,10 +4,15 @@ import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 
+const VALID_INTERVIEW_TYPES = ['HR', 'TECHNICAL', 'BEHAVIOURAL'] as const;
+type InterviewType = (typeof VALID_INTERVIEW_TYPES)[number];
+
 export const startSession = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) throw ApiError.unauthorized();
   const { type } = req.body;
-  const session = await interviewService.startSession(req.user.id, type || 'TECHNICAL');
+  const interviewType: InterviewType =
+    VALID_INTERVIEW_TYPES.includes(type) ? type : 'TECHNICAL';
+  const session = await interviewService.startSession(req.user.id, interviewType);
   res.status(201).json(ApiResponse.ok('Interview session started successfully', session));
 });
 

@@ -25,9 +25,11 @@ export class UserRepository {
   async findByEmail(email: string) {
     return prisma.user.findUnique({
       where: { email },
+      select: this.defaultSelect,
     });
   }
 
+  /** Returns the full record including the hashed password — only for auth flows. */
   async findByEmailWithPassword(email: string) {
     return prisma.user.findUnique({
       where: { email },

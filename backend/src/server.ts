@@ -36,10 +36,11 @@ const startServer = async (): Promise<void> => {
     });
 
     // Force close after 10s if graceful shutdown stalls
-    setTimeout(() => {
+    const forceExit = setTimeout(() => {
       logger.error('Forced shutdown after timeout');
       process.exit(1);
     }, 10_000);
+    forceExit.unref(); // don't keep the event loop alive for this timer alone
   };
 
   process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
