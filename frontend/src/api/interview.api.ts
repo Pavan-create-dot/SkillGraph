@@ -19,15 +19,22 @@ export interface InterviewSession {
   questions: InterviewQuestion[];
 }
 
-export const startInterviewSession = async (type: 'HR' | 'TECHNICAL' | 'BEHAVIOURAL'): Promise<InterviewSession> => {
-  const response = await api.post('/interview/start', { type });
+/** Start a new interview session.
+ *  @param type   - Interview round type
+ *  @param role   - Target role for this session (overrides profile targetRole)
+ */
+export const startInterviewSession = async (
+  type: 'HR' | 'TECHNICAL' | 'BEHAVIOURAL',
+  role: string,
+): Promise<InterviewSession> => {
+  const response = await api.post('/interview/start', { type, role });
   return response.data.data;
 };
 
 export const submitInterviewAnswer = async (
   sessionId: string,
   questionId: string,
-  userAnswer: string
+  userAnswer: string,
 ): Promise<InterviewQuestion> => {
   const response = await api.post('/interview/answer', { sessionId, questionId, userAnswer });
   return response.data.data;

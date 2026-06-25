@@ -4,13 +4,20 @@ import { aiService } from './ai.service';
 import { logger } from '../config/logger';
 
 export class InterviewService {
-  async startSession(userId: string, type: 'HR' | 'TECHNICAL' | 'BEHAVIOURAL') {
+  async startSession(
+    userId: string,
+    type: 'HR' | 'TECHNICAL' | 'BEHAVIOURAL',
+    roleOverride?: string,
+  ) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw ApiError.notFound('User not found');
 
     const resumeParsed = (user.resumeParsed as any) || {};
     const resumeSkills = Array.isArray(resumeParsed.skills) ? resumeParsed.skills : [];
-    const targetRole = user.targetRole || 'Software Development Engineer';
+    // Use the role passed from the interview page, or fall back to profile targetRole
+    const targetRole = (roleOverride && roleOverride.trim()) || user.targetRole || 'Software Development Engineer';
+
+    logger.info({ userId, type, targetRole }, 'Starting interview session');
 
     // Generate questions from AI
     const questions = await aiService.generateInterviewQuestions({

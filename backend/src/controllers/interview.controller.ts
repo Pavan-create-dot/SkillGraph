@@ -9,9 +9,9 @@ type InterviewType = (typeof VALID_INTERVIEW_TYPES)[number];
 
 export const startSession = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) throw ApiError.unauthorized();
-  const { type } = req.body;
+  const { type, role } = req.body;
   const interviewType: InterviewType = VALID_INTERVIEW_TYPES.includes(type) ? type : 'TECHNICAL';
-  const session = await interviewService.startSession(req.user.id, interviewType);
+  const session = await interviewService.startSession(req.user.id, interviewType, role);
   res.status(201).json(ApiResponse.ok('Interview session started successfully', session));
 });
 
