@@ -14,8 +14,12 @@ export class InterviewService {
 
     const resumeParsed = (user.resumeParsed as any) || {};
     const resumeSkills = Array.isArray(resumeParsed.skills) ? resumeParsed.skills : [];
-    // Use the role passed from the interview page, or fall back to profile targetRole
-    const targetRole = (roleOverride && roleOverride.trim()) || user.targetRole || 'Software Development Engineer';
+
+    // Use the role passed from the interview page; fall back to profile targetRole
+    const targetRole =
+      (roleOverride && roleOverride.trim()) ||
+      user.targetRole ||
+      'Software Development Engineer';
 
     logger.info({ userId, type, targetRole }, 'Starting interview session');
 
@@ -26,11 +30,12 @@ export class InterviewService {
       type,
     });
 
-    // Create session in database
+    // Create session — persist the resolved role so evaluation uses the same one
     const session = await prisma.interviewSession.create({
       data: {
         userId,
         type,
+        sessionRole: targetRole,
         questions: {
           create: questions.map((q) => ({
             questionText: q.questionText,
@@ -56,8 +61,8 @@ export class InterviewService {
     });
     if (!question) throw ApiError.notFound('Question not found');
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    const targetRole = user?.targetRole || 'Software Developer';
+    // Use the role stored on the session — consistent with question generation
+    const targetRole = session.sessionRole || 'Software Developer';
 
     // Evaluate answer with Gemini AI
     const evaluation = await aiService.evaluateInterviewAnswer(

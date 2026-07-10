@@ -42,10 +42,11 @@ model User {
 }
 
 model InterviewSession {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  type      String   @map("type") @db.VarChar(50) // HR, TECHNICAL, BEHAVIOURAL
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  type        String   @map("type") @db.VarChar(50)        // HR, TECHNICAL, BEHAVIOURAL
+  sessionRole String?  @map("session_role") @db.VarChar(100) // Role chosen at interview start
+  createdAt   DateTime @default(now()) @map("created_at")
 
   questions InterviewQuestion[]
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -10,7 +10,6 @@ import {
   MessageSquare,
   CheckCircle2,
   Sparkles,
-  Award,
   Send,
   Loader2,
   ChevronRight,
