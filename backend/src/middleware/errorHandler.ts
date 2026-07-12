@@ -24,7 +24,15 @@ export const errorHandler = (
 
   // Handle Zod validation errors
   if (err instanceof ZodError) {
-    const errors = err.flatten().fieldErrors as Record<string, string[]>;
+    const errors: Record<string, string[]> = {};
+    err.issues.forEach((issue) => {
+      const field = issue.path.length > 0 ? String(issue.path[issue.path.length - 1]) : 'unknown';
+      if (!errors[field]) {
+        errors[field] = [];
+      }
+      errors[field].push(issue.message);
+    });
+
     logger.warn({ msg: 'Validation error', path: req.path, errors });
 
     const response: ErrorResponse = {

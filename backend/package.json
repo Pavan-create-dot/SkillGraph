@@ -17,7 +17,8 @@
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node --transpile-only prisma/seed.ts",
     "prisma:reset": "prisma migrate reset --force",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "render-build": "npm install && npx prisma generate && npx prisma migrate deploy && npm run build"
   },
   "prisma": {
     "seed": "ts-node --transpile-only prisma/seed.ts"
