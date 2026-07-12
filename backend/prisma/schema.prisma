@@ -1,0 +1,111 @@
+// ============================================================
+// SkillGraph AI — Prisma Schema
+// Phase 1: Foundation (User, Skill, SkillEdge, Progress, CareerGoal)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum SkillDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  progress Progress[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Skill {
+  id          String          @id @default(uuid())
+  name        String          @unique @db.VarChar(200)
+  category    String          @db.VarChar(100)
+  description String?         @db.Text
+  difficulty  SkillDifficulty @default(BEGINNER)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  // Relations — directed graph edges
+  parentEdges SkillEdge[] @relation("ParentSkill")
+  childEdges  SkillEdge[] @relation("ChildSkill")
+  progress    Progress[]
+
+  @@index([category])
+  @@index([difficulty])
+  @@map("skills")
+}
+
+model SkillEdge {
+  id            String @id @default(uuid())
+  parentSkillId String @map("parent_skill_id")
+  childSkillId  String @map("child_skill_id")
+
+  // Relations
+  parentSkill Skill @relation("ParentSkill", fields: [parentSkillId], references: [id], onDelete: Cascade)
+  childSkill  Skill @relation("ChildSkill", fields: [childSkillId], references: [id], onDelete: Cascade)
+
+  @@unique([parentSkillId, childSkillId])
+  @@index([parentSkillId])
+  @@index([childSkillId])
+  @@map("skill_edges")
+}
+
+model Progress {
+  id        String         @id @default(uuid())
+  userId    String         @map("user_id")
+  skillId   String         @map("skill_id")
+  mastery   Float          @default(0) // 0.0 - 100.0
+  status    ProgressStatus @default(NOT_STARTED)
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([userId])
+  @@index([skillId])
+  @@index([status])
+  @@map("progress")
+}
+
+model CareerGoal {
+  id          String  @id @default(uuid())
+  name        String  @unique @db.VarChar(200)
+  description String? @db.Text
+
+  @@map("career_goals")
+}
