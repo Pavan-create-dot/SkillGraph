@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { skillService } from '../services/skill.service';
 import { ApiResponse } from '../utils/ApiResponse';
+import { ApiError } from '../utils/ApiError';
 import { asyncHandler } from '../utils/asyncHandler';
 
 export const listSkills = asyncHandler(async (req: Request, res: Response) => {
@@ -28,5 +29,18 @@ export const getGraph = asyncHandler(async (_req: Request, res: Response) => {
 
   res.status(200).json(
     ApiResponse.ok('Skill graph retrieved successfully', graphData),
+  );
+});
+
+export const getSkillById = asyncHandler(async (req: Request, res: Response) => {
+  const skillId = req.params.skillId as string;
+  const skill = await skillService.getSkillById(skillId);
+
+  if (!skill) {
+    throw ApiError.notFound('Skill not found');
+  }
+
+  res.status(200).json(
+    ApiResponse.ok('Skill details retrieved successfully', skill),
   );
 });
