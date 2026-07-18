@@ -11,8 +11,11 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import SkillsPage from './pages/SkillsPage';
+import SkillGraphPage from './pages/SkillGraphPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import NotFoundPage from './pages/NotFoundPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,9 +28,10 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
           <Routes>
             {/* ─── Public Routes / Auth ────────────────────────────────── */}
             <Route element={<AuthLayout />}>
@@ -40,6 +44,7 @@ const App: React.FC = () => {
               <Route element={<MainLayout />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/skills" element={<SkillsPage />} />
+                <Route path="/skills/graph" element={<SkillGraphPage />} />
                 <Route path="/career-goals" element={<CareerGoalsPage />} />
               </Route>
             </Route>
@@ -47,11 +52,12 @@ const App: React.FC = () => {
             {/* ─── Error Pages ────────────────────────────────────────── */}
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

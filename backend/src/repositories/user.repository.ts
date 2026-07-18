@@ -10,6 +10,7 @@ export class UserRepository {
         name: true,
         email: true,
         role: true,
+        selectedCareerGoalId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -51,10 +52,23 @@ export class UserRepository {
         name: true,
         email: true,
         role: true,
+        selectedCareerGoalId: true,
         createdAt: true,
         updatedAt: true,
       },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateSelectedCareerGoal(id: string, careerGoalId: string | null) {
+    return prisma.user.update({
+      where: { id },
+      data: { selectedCareerGoalId: careerGoalId },
+      select: {
+        id: true,
+        name: true,
+        selectedCareerGoalId: true,
+      },
     });
   }
 

@@ -37,6 +37,10 @@ export class SkillService {
   async getCategories(): Promise<string[]> {
     return skillRepository.findCategories();
   }
+
+  async getGraphData() {
+    return skillRepository.getGraphData();
+  }
 }
 
 export const skillService = new SkillService();

@@ -36,6 +36,12 @@ export class SkillRepository {
   async count(): Promise<number> {
     return prisma.skill.count();
   }
+
+  async getGraphData() {
+    const nodes = await prisma.skill.findMany();
+    const edges = await prisma.skillEdge.findMany();
+    return { nodes, edges };
+  }
 }
 
 export const skillRepository = new SkillRepository();

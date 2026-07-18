@@ -11,6 +11,11 @@ export class UserService {
 
     return user;
   }
+
+  async updateSelectedCareerGoal(userId: string, careerGoalId: string | null) {
+    const user = await userRepository.updateSelectedCareerGoal(userId, careerGoalId);
+    return user;
+  }
 }
 
 export const userService = new UserService();

@@ -43,7 +43,9 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  progress Progress[]
+  progress             Progress[]
+  selectedCareerGoalId String?     @map("selected_career_goal_id")
+  selectedCareerGoal   CareerGoal? @relation(fields: [selectedCareerGoalId], references: [id], onDelete: SetNull)
 
   @@index([email])
   @@map("users")
@@ -106,6 +108,9 @@ model CareerGoal {
   id          String  @id @default(uuid())
   name        String  @unique @db.VarChar(200)
   description String? @db.Text
+
+  // Relations
+  users User[]
 
   @@map("career_goals")
 }

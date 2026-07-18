@@ -22,9 +22,19 @@ const createApp = (): Application => {
     }),
   );
 
+  // Support comma-separated list of origins: e.g. "http://localhost:5173,https://skillgraph.vercel.app"
+  const allowedOrigins = env.CORS_ORIGIN.split(',').map((o) => o.trim());
+
   app.use(
     cors({
-      origin: env.CORS_ORIGIN,
+      origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, Render health checks)
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS: origin '${origin}' not allowed`));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],

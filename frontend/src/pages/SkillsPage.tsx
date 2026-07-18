@@ -1,49 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { skillsApi } from '../api/index';
-import type { Skill } from '../types';
+import React, { useState } from 'react';
+import { useSkills, useCategories } from '../hooks/useSkills';
 
 const SkillsPage: React.FC = () => {
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await skillsApi.getCategories();
-        if (response.data) {
-          setCategories(response.data);
-        }
-      } catch (err: any) {
-        console.error('Failed to load categories', err);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+  
+  const { 
+    data: skillsResponse, 
+    isLoading: isLoadingSkills,
+    error: skillsError
+  } = useSkills(1, 100, selectedCategory === 'All' ? undefined : selectedCategory);
 
-  useEffect(() => {
-    const fetchSkills = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await skillsApi.list({
-          category: selectedCategory === 'All' ? undefined : selectedCategory,
-          limit: 100,
-        });
-        if (response.data) {
-          setSkills(response.data.data);
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to retrieve skills list.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSkills();
-  }, [selectedCategory]);
+  const skills = skillsResponse?.data || [];
+  const isLoading = isLoadingSkills || isLoadingCategories;
+  const error = skillsError ? (skillsError as Error).message : null;
 
   return (
     <div className="space-y-6">

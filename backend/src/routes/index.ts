@@ -3,6 +3,7 @@ import authRoutes from './auth.routes';
 import userRoutes from './user.routes';
 import skillRoutes from './skill.routes';
 import careerGoalRoutes from './careerGoal.routes';
+import progressRoutes from './progress.routes';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/skills', skillRoutes);
 router.use('/career-goals', careerGoalRoutes);
+router.use('/progress', progressRoutes);
 
 export default router;

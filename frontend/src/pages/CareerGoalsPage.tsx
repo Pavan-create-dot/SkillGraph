@@ -1,44 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { careerGoalsApi } from '../api/index';
-import type { CareerGoal } from '../types';
+import React, { useState } from 'react';
+import { useCareerGoals, useUpdateSelectedCareerGoal } from '../hooks/useCareerGoals';
 
 const CareerGoalsPage: React.FC = () => {
-  const [careerGoals, setCareerGoals] = useState<CareerGoal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectionMessage, setSelectionMessage] = useState<string | null>(null);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const fetchCareerGoals = async () => {
-      try {
-        const response = await careerGoalsApi.list();
-        if (response.data) {
-          setCareerGoals(response.data);
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to retrieve career goals.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchCareerGoals();
-  }, []);
+  const { data: careerGoals = [], isLoading, error: queryError } = useCareerGoals();
+  const { mutate: selectGoal, isPending: isSubmitting, error: mutationError } = useUpdateSelectedCareerGoal();
 
-  const handleSelect = async (goalId: string) => {
-    setIsSubmitting(true);
+  const error = (queryError as Error)?.message || (mutationError as Error)?.message || null;
+
+  const handleSelect = (goalId: string) => {
     setSelectionMessage(null);
     setSelectedGoalId(goalId);
 
-    try {
-      const response = await careerGoalsApi.select(goalId);
-      setSelectionMessage(response.message || 'Selected goal registered successfully!');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to register selection.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    selectGoal(goalId, {
+      onSuccess: () => {
+        setSelectionMessage('Selected goal registered successfully!');
+      },
+      onError: () => {
+        setSelectedGoalId(null);
+      }
+    });
   };
 
   return (

@@ -15,3 +15,21 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
     ApiResponse.ok('Profile retrieved successfully', user),
   );
 });
+
+export const updateCareerGoal = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw ApiError.unauthorized();
+  }
+
+  const { careerGoalId } = req.body;
+  // allow null to clear goal
+  if (careerGoalId !== null && typeof careerGoalId !== 'string') {
+    throw ApiError.badRequest('careerGoalId must be a string or null');
+  }
+
+  const user = await userService.updateSelectedCareerGoal(req.user.id, careerGoalId);
+
+  res.status(200).json(
+    ApiResponse.ok('Career goal updated successfully', user),
+  );
+});

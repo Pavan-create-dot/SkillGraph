@@ -22,3 +22,11 @@ export const listCategories = asyncHandler(async (_req: Request, res: Response) 
     ApiResponse.ok('Categories retrieved successfully', categories),
   );
 });
+
+export const getGraph = asyncHandler(async (_req: Request, res: Response) => {
+  const graphData = await skillService.getGraphData();
+
+  res.status(200).json(
+    ApiResponse.ok('Skill graph retrieved successfully', graphData),
+  );
+});
