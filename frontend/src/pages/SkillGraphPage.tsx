@@ -1,75 +1,323 @@
-import React, { useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
   MiniMap,
-  applyNodeChanges,
-  applyEdgeChanges,
+  MarkerType,
+  useNodesState,
+  useEdgesState,
+  Position,
 } from 'reactflow';
-import type { Node, Edge, NodeChange, EdgeChange } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
+import dagre from '@dagrejs/dagre';
+
 import { useSkillGraph } from '../hooks/useSkillGraph';
+import { useProgress } from '../hooks/useProgress';
+import { useSkills, useCategories } from '../hooks/useSkills';
+import { useTopologicalOrder, useShortestPath } from '../hooks/useGraph';
+
+import SkillNode from '../components/graph/SkillNode';
+import GraphToolbar from '../components/graph/GraphToolbar';
+import SkillDetailPanel from '../components/graph/SkillDetailPanel';
+import type { ProgressStatus } from '../types';
+
+// Map custom nodes
+const nodeTypes = {
+  skillNode: SkillNode,
+};
+
+// Dagre Layout Setup
+const getLayoutedElements = (nodes: Node[], edges: Edge[], direction: 'TB' | 'LR' = 'TB') => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+  
+  const isHorizontal = direction === 'LR';
+  dagreGraph.setGraph({
+    rankdir: direction,
+    ranker: 'network-simplex',
+    nodesep: 80,
+    ranksep: 100,
+  });
+
+  nodes.forEach((node) => {
+    // node dimension settings matching custom cards
+    dagreGraph.setNode(node.id, { width: 240, height: 140 });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  const positionedNodes = nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    return {
+      ...node,
+      targetPosition: isHorizontal ? Position.Left : Position.Top,
+      sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
+      position: {
+        x: nodeWithPosition.x - 120, // center offset (half of width 240)
+        y: nodeWithPosition.y - 70,  // center offset (half of height 140)
+      },
+    };
+  });
+
+  return { nodes: positionedNodes, edges };
+};
 
 const SkillGraphPage: React.FC = () => {
-  const { data: graphData, isLoading, error } = useSkillGraph();
-  const [nodes, setNodes] = React.useState<Node[]>([]);
-  const [edges, setEdges] = React.useState<Edge[]>([]);
+  const { data: graphData, isLoading: graphLoading, error: graphError } = useSkillGraph();
+  const { data: progressData, isLoading: progressLoading } = useProgress();
+  const { data: categories = [] } = useCategories();
+  const { data: skillsResult } = useSkills(1, 100);
+  const skills = skillsResult?.data ?? [];
+  const { data: topologicalOrder = [] } = useTopologicalOrder();
 
-  React.useEffect(() => {
-    if (graphData) {
-      // Basic layout algorithm or just random placement for now
-      // In a real scenario, use dagre for topological layout
-      const formattedNodes: Node[] = graphData.nodes.map((skill, index) => ({
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  // UI / Graph States
+  const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR'>('TB');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [showLearningPath, setShowLearningPath] = useState(false);
+  const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
+
+  // Shortest Path Finder States
+  const [pathStart, setPathStart] = useState<string>('');
+  const [pathEnd, setPathEnd] = useState<string>('');
+
+  const { data: shortestPath = [] } = useShortestPath(
+    pathStart || null,
+    pathEnd || null
+  );
+
+  // Find currently selected skill object
+  const selectedSkill = useMemo(() => {
+    if (!selectedSkillId) return null;
+    return skills.find((s) => s.id === selectedSkillId) || null;
+  }, [selectedSkillId, skills]);
+
+  // Jump helper for nodes (focus detail panel on a different node)
+  const handleJumpToSkill = useCallback((skillId: string) => {
+    setSelectedSkillId(skillId);
+  }, []);
+
+  // Format elements (nodes + edges) based on filters & states
+  useEffect(() => {
+    if (!graphData) return;
+
+    // Filter nodes if a specific category is chosen
+    const filteredSkills = selectedCategory === 'ALL'
+      ? graphData.nodes
+      : graphData.nodes.filter((s) => s.category === selectedCategory);
+
+    const filteredSkillIds = new Set(filteredSkills.map((s) => s.id));
+
+    // Construct React Flow Nodes
+    const flowNodes: Node[] = filteredSkills.map((skill) => {
+      // Find progress overlay
+      const prog = progressData?.find((p) => p.skillId === skill.id);
+      const mastery = prog?.mastery ?? 0;
+      const status: ProgressStatus = prog?.status ?? 'NOT_STARTED';
+
+      // Check if it is on the shortest path
+      const isPathNode = shortestPath?.some((s) => s.id === skill.id) ?? false;
+
+      // Check if highlighted in topological order
+      const orderIndex = topologicalOrder.findIndex((s) => s.id === skill.id);
+      const learningPathIndex = showLearningPath && orderIndex !== -1 ? orderIndex + 1 : undefined;
+
+      return {
         id: skill.id,
-        position: { x: (index % 5) * 200, y: Math.floor(index / 5) * 150 },
-        data: { label: skill.name },
-      }));
+        type: 'skillNode',
+        data: {
+          skill,
+          mastery,
+          status,
+          learningPathIndex,
+          isSelected: skill.id === selectedSkillId,
+          isPathNode,
+          layoutDirection,
+        },
+        position: { x: 0, y: 0 }, // position computed by dagre layout below
+      };
+    });
 
-      const formattedEdges: Edge[] = graphData.edges.map((edge) => ({
-        id: edge.id,
-        source: edge.parentSkillId,
-        target: edge.childSkillId,
-        animated: true,
-      }));
+    // Construct React Flow Edges (only include edges connecting nodes that exist in filtered set)
+    const flowEdges: Edge[] = graphData.edges
+      .filter((edge) => filteredSkillIds.has(edge.parentSkillId) && filteredSkillIds.has(edge.childSkillId))
+      .map((edge) => {
+        const parentProgress = progressData?.find((p) => p.skillId === edge.parentSkillId);
+        
+        // Edge styling based on parent progress
+        let strokeColor = '#475569'; // default slate-600
+        let animated = false;
 
-      setNodes(formattedNodes);
-      setEdges(formattedEdges);
-    }
-  }, [graphData]);
+        if (parentProgress?.status === 'COMPLETED') {
+          strokeColor = '#10b981'; // green edge for completed unlock paths
+        } else if (parentProgress?.status === 'IN_PROGRESS') {
+          strokeColor = '#0ea5e9'; // pulsing blue edge for ongoing learning paths
+          animated = true;
+        }
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    [],
-  );
+        // Highlight if edge lies on shortest path
+        const isPathEdge = shortestPath.length > 0 &&
+          shortestPath.findIndex((s) => s.id === edge.parentSkillId) !== -1 &&
+          shortestPath.findIndex((s) => s.id === edge.childSkillId) !== -1;
 
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [],
-  );
+        if (isPathEdge) {
+          strokeColor = '#f59e0b'; // glowing amber
+          animated = true;
+        }
 
-  if (isLoading) return <div className="p-8 text-center">Loading graph...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">Error loading graph</div>;
+        return {
+          id: edge.id,
+          source: edge.parentSkillId,
+          target: edge.childSkillId,
+          animated,
+          style: {
+            stroke: strokeColor,
+            strokeWidth: isPathEdge ? 3.5 : 1.5,
+            transition: 'stroke 0.3s, stroke-width 0.3s',
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: strokeColor,
+            width: 14,
+            height: 14,
+          },
+        };
+      });
+
+    // Run dagre auto-layout
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      flowNodes,
+      flowEdges,
+      layoutDirection
+    );
+
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+  }, [
+    graphData,
+    progressData,
+    selectedCategory,
+    showLearningPath,
+    selectedSkillId,
+    shortestPath,
+    topologicalOrder,
+    layoutDirection,
+    setNodes,
+    setEdges,
+  ]);
+
+  // Click handler to select node and open detail panel
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedSkillId(node.id);
+  }, []);
+
+  // Clear pathfinder settings
+  const handleClearPath = () => {
+    setPathStart('');
+    setPathEnd('');
+  };
+
+  const loading = graphLoading || progressLoading;
+
+  if (loading) return <div className="p-8 text-center text-slate-400">Loading Knowledge Graph...</div>;
+  if (graphError) return <div className="p-8 text-center text-red-500">Error loading graph data.</div>;
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full relative">
       <div className="mb-4">
-        <h1 className="text-3xl font-bold mb-2 text-slate-100">Knowledge Graph</h1>
-        <p className="text-slate-400">Visualize skill dependencies and learning paths.</p>
+        <span className="text-primary-400 text-xs font-semibold uppercase tracking-wider bg-primary-500/10 px-3 py-1 rounded-full border border-primary-500/20">
+          Knowledge Engine Enabled
+        </span>
+        <h1 className="text-3xl font-bold mt-2 mb-1 text-slate-100">Interactive Knowledge Graph</h1>
+        <p className="text-slate-400 text-sm">
+          Visualize prerequisites, unlock sequences, update progress, and find custom learning paths.
+        </p>
       </div>
 
-      <div className="flex-1 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 min-h-[600px]">
+      {/* Toolbar Controls */}
+      <GraphToolbar
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        showLearningPath={showLearningPath}
+        onToggleLearningPath={() => setShowLearningPath(!showLearningPath)}
+        skills={skills}
+        pathStart={pathStart}
+        pathEnd={pathEnd}
+        onPathStartChange={setPathStart}
+        onPathEndChange={setPathEnd}
+        onClearPath={handleClearPath}
+        layoutDirection={layoutDirection}
+        onLayoutDirectionChange={setLayoutDirection}
+      />
+
+      {/* Interactive Graph Panel */}
+      <div className="flex-1 bg-slate-950/60 rounded-2xl overflow-hidden border border-slate-800 min-h-[600px] shadow-inner relative">
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
+          onNodeClick={onNodeClick}
           fitView
+          attributionPosition="bottom-right"
         >
-          <Background color="#334155" gap={16} />
-          <Controls />
-          <MiniMap />
+          <Background color="#334155" gap={18} size={1} />
+          <Controls className="!bg-slate-800 !border-slate-700 !fill-slate-200" />
+          <MiniMap
+            nodeStrokeColor="#1e293b"
+            nodeColor={(node) => {
+              const status = node.data?.status;
+              if (status === 'COMPLETED') return '#10b981';
+              if (status === 'IN_PROGRESS') return '#0ea5e9';
+              return '#334155';
+            }}
+            maskColor="rgba(15, 23, 42, 0.6)"
+            className="!bg-slate-900 !border-slate-700"
+          />
         </ReactFlow>
+
+        {/* Legend Overlay */}
+        <div className="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur-sm border border-slate-700/60 p-3 rounded-lg flex flex-col gap-2 z-10 text-xxs text-slate-300">
+          <div className="font-semibold text-slate-400 uppercase tracking-wide border-b border-slate-700/40 pb-1 mb-1">
+            Legend
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <span>Completed Skill / Path</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
+            <span>Learning / In-Progress</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-500" />
+            <span>Locked / Not Started</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+            <span>Shortest Learning Path</span>
+          </div>
+        </div>
       </div>
+
+      {/* Slide-over Detail Sidebar */}
+      {selectedSkill && (
+        <SkillDetailPanel
+          skill={selectedSkill}
+          onClose={() => setSelectedSkillId(null)}
+          userProgress={progressData}
+          onJumpToSkill={handleJumpToSkill}
+        />
+      )}
     </div>
   );
 };

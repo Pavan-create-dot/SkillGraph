@@ -4,6 +4,8 @@ import userRoutes from './user.routes';
 import skillRoutes from './skill.routes';
 import careerGoalRoutes from './careerGoal.routes';
 import progressRoutes from './progress.routes';
+import graphRoutes from './graph.routes';
+import edgeRoutes from './edge.routes';
 
 const router = Router();
 
@@ -23,5 +25,7 @@ router.use('/users', userRoutes);
 router.use('/skills', skillRoutes);
 router.use('/career-goals', careerGoalRoutes);
 router.use('/progress', progressRoutes);
+router.use('/graph', graphRoutes);
+router.use('/edges', edgeRoutes);
 
 export default router;

@@ -41,6 +41,12 @@ const MainLayout: React.FC = () => {
                 Skills
               </Link>
               <Link
+                to="/skills/graph"
+                className="text-slate-300 hover:text-white text-sm font-medium transition-colors"
+              >
+                Knowledge Graph
+              </Link>
+              <Link
                 to="/career-goals"
                 className="text-slate-300 hover:text-white text-sm font-medium transition-colors"
               >

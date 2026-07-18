@@ -1,13 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../api/axios';
-
-export interface Skill {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-}
+import type { Skill } from '../types';
+export type { Skill } from '../types';
 
 interface PaginatedSkillsResponse {
   data: {

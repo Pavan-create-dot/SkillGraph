@@ -42,6 +42,38 @@ export class SkillRepository {
     const edges = await prisma.skillEdge.findMany();
     return { nodes, edges };
   }
+
+  async findEdge(parentSkillId: string, childSkillId: string) {
+    return prisma.skillEdge.findUnique({
+      where: {
+        parentSkillId_childSkillId: {
+          parentSkillId,
+          childSkillId,
+        },
+      },
+    });
+  }
+
+  async findEdgeById(id: string) {
+    return prisma.skillEdge.findUnique({
+      where: { id },
+    });
+  }
+
+  async createEdge(parentSkillId: string, childSkillId: string) {
+    return prisma.skillEdge.create({
+      data: {
+        parentSkillId,
+        childSkillId,
+      },
+    });
+  }
+
+  async deleteEdge(id: string) {
+    return prisma.skillEdge.delete({
+      where: { id },
+    });
+  }
 }
 
 export const skillRepository = new SkillRepository();

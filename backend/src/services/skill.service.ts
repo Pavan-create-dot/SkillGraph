@@ -41,6 +41,10 @@ export class SkillService {
   async getGraphData() {
     return skillRepository.getGraphData();
   }
+
+  async getSkillById(id: string) {
+    return skillRepository.findById(id);
+  }
 }
 
 export const skillService = new SkillService();

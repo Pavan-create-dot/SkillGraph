@@ -16,4 +16,7 @@ router.get('/categories', skillController.listCategories);
 // GET /api/v1/skills/graph
 router.get('/graph', skillController.getGraph);
 
+// GET /api/v1/skills/:skillId
+router.get('/:skillId', skillController.getSkillById);
+
 export default router;
