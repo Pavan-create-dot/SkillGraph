@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import prisma from '../config/prisma';
+import { prisma } from '../config/database';
 import { aiService } from '../services/ai.service';
 import { ApiResponse } from '../utils/ApiResponse';
 import { ApiError } from '../utils/ApiError';
@@ -31,7 +31,7 @@ export const generateRoadmap = asyncHandler(async (req: Request, res: Response) 
   const generated = await aiService.generateRoadmap(body);
 
   // Save everything in a transaction
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: any) => {
     const createdSkills: { id: string; name: string }[] = [];
 
     // Create skills (upsert by name to avoid duplicates)
@@ -117,10 +117,10 @@ export const getMyRoadmap = asyncHandler(async (req: Request, res: Response) => 
   }
 
   const topic = roadmapEntries[0].topic;
-  const skillIds = new Set(roadmapEntries.map((r) => r.skillId));
+  const skillIds = new Set(roadmapEntries.map((r: any) => r.skillId));
 
   // Nodes: user's personal skills
-  const nodes = roadmapEntries.map((r) => r.skill);
+  const nodes = roadmapEntries.map((r: any) => r.skill);
 
   // Edges: only those connecting skills inside this user's roadmap
   const edgeSet = new Set<string>();
@@ -138,7 +138,7 @@ export const getMyRoadmap = asyncHandler(async (req: Request, res: Response) => 
   res.status(200).json(
     ApiResponse.ok('Roadmap retrieved successfully', {
       topic,
-      nodes: nodes.map(({ parentEdges: _p, childEdges: _c, ...rest }) => rest),
+      nodes: nodes.map(({ parentEdges: _p, childEdges: _c, ...rest }: any) => rest),
       edges,
     }),
   );
