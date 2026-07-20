@@ -73,7 +73,7 @@ const SkillGraphPage: React.FC = () => {
   const { data: categories = [] } = useCategories();
   const { data: skillsResult } = useSkills(1, 100);
   const skills = skillsResult?.data ?? [];
-  const { data: topologicalOrder = [] } = useTopologicalOrder();
+  const { data: topologicalOrderRaw } = useTopologicalOrder();
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -88,10 +88,15 @@ const SkillGraphPage: React.FC = () => {
   const [pathStart, setPathStart] = useState<string>('');
   const [pathEnd, setPathEnd] = useState<string>('');
 
-  const { data: shortestPath = [] } = useShortestPath(
+  const { data: shortestPathRaw } = useShortestPath(
     pathStart || null,
     pathEnd || null
   );
+
+  // Stable empty-array fallbacks — avoids new references every render
+  const EMPTY: never[] = useMemo(() => [], []);
+  const shortestPath = shortestPathRaw ?? EMPTY;
+  const topologicalOrder = topologicalOrderRaw ?? EMPTY;
 
   // Find currently selected skill object
   const selectedSkill = useMemo(() => {
@@ -200,6 +205,7 @@ const SkillGraphPage: React.FC = () => {
 
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     graphData,
     progressData,
@@ -209,8 +215,7 @@ const SkillGraphPage: React.FC = () => {
     shortestPath,
     topologicalOrder,
     layoutDirection,
-    setNodes,
-    setEdges,
+    // setNodes and setEdges are stable React Flow dispatch functions — omitting from deps is safe
   ]);
 
   // Click handler to select node and open detail panel
