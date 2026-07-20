@@ -21,7 +21,7 @@ services:
         value: 5000
       - key: DATABASE_URL
         fromDatabase:
-          name: skillgraph-db
+          name: skillgraphdb
           property: connectionString
       - key: JWT_ACCESS_SECRET
         generateValue: true
@@ -44,7 +44,7 @@ services:
 
 # ─── PostgreSQL Database ──────────────────────────────────
 databases:
-  - name: skillgraph-db
+  - name: skillgraphdb
     databaseName: skillgraph_db
     user: skillgraph_user
     region: singapore
