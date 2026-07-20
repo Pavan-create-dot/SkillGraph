@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '../config/env';
 import { ApiError } from '../utils/ApiError';
+import { logger } from '../config/logger';
 
 export interface RoadmapInput {
   topic: string;
@@ -44,7 +45,12 @@ export class AiService {
 
   async generateRoadmap(input: RoadmapInput): Promise<GeneratedRoadmap> {
     const genAI = this.getClient();
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    const modelsToTry = [
+      'gemini-flash-latest',
+      'gemini-flash-lite-latest',
+      'gemini-2.0-flash-lite',
+      'gemini-3.1-flash-lite',
+    ];
 
     const prompt = `You are an expert learning coach and curriculum designer.
 
@@ -84,28 +90,38 @@ Respond with ONLY valid JSON in this exact format (no markdown, no extra text):
   ]
 }`;
 
-    try {
-      const result = await model.generateContent(prompt);
-      const text = result.response.text().trim();
+    let lastError: unknown = null;
 
-      // Strip markdown code fences if present
-      const jsonText = text
-        .replace(/^```(?:json)?\n?/, '')
-        .replace(/\n?```$/, '')
-        .trim();
+    for (const modelName of modelsToTry) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        const text = result.response.text().trim();
 
-      const parsed: GeneratedRoadmap = JSON.parse(jsonText);
+        // Strip markdown code fences if present
+        const jsonText = text
+          .replace(/^```(?:json)?\n?/, '')
+          .replace(/\n?```$/, '')
+          .trim();
 
-      // Basic validation
-      if (!parsed.skills || !Array.isArray(parsed.skills) || parsed.skills.length === 0) {
-        throw new Error('AI returned invalid roadmap structure');
+        const parsed: GeneratedRoadmap = JSON.parse(jsonText);
+
+        // Basic validation
+        if (!parsed.skills || !Array.isArray(parsed.skills) || parsed.skills.length === 0) {
+          throw new Error('AI returned invalid roadmap structure');
+        }
+
+        return parsed;
+      } catch (err) {
+        lastError = err;
+        logger.warn(
+          `Model ${modelName} failed to generate roadmap: ${err instanceof Error ? err.message : String(err)}. Trying fallback...`,
+        );
       }
-
-      return parsed;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown AI error';
-      throw ApiError.internal(`Failed to generate roadmap: ${message}`);
     }
+
+    const message = lastError instanceof Error ? lastError.message : 'Unknown AI error';
+    throw ApiError.internal(`Failed to generate roadmap: ${message}`);
   }
 }
 
