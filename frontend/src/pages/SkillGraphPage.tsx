@@ -363,7 +363,22 @@ const SkillGraphPage: React.FC = () => {
   }
 
   if (loading) return <div className="p-8 text-center text-slate-400">Loading your Knowledge Graph…</div>;
-  if (graphError) return <div className="p-8 text-center text-red-500">Error loading graph data.</div>;
+  if (graphError) return <div className="p-8 text-center text-red-500">Error loading graph data. Please try refreshing the page.</div>;
+  if (!loading && hasRoadmap && (!roadmapData?.nodes || roadmapData.nodes.length === 0)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center gap-4">
+        <div className="text-5xl">⏳</div>
+        <h2 className="text-xl font-bold text-white">Roadmap is syncing…</h2>
+        <p className="text-slate-400 max-w-sm">Your roadmap was generated. Please wait a moment and refresh the page for the graph to appear.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-6 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-semibold transition-colors"
+        >
+          🔄 Refresh Page
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full w-full relative">
@@ -395,7 +410,7 @@ const SkillGraphPage: React.FC = () => {
       />
 
       {/* Interactive Graph Panel */}
-      <div className="flex-1 bg-slate-950/60 rounded-2xl overflow-hidden border border-slate-800 min-h-[600px] shadow-inner relative">
+      <div className="bg-slate-950/60 rounded-2xl overflow-hidden border border-slate-800 shadow-inner relative" style={{ height: '640px' }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
