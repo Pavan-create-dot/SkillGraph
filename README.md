@@ -185,3 +185,5 @@ Open `http://localhost:5173` to interact with the UI.
 - **Phase 5: AI Micro Lessons & Resume Skill Extraction** — OpenAI/Claude API integration to extract skills from PDF resumes and generate micro lessons.
 
 <!-- trigger CI/CD -->
+
+<!-- fix: force backend redeploy with correct CORS and DB settings -->
