@@ -44,6 +44,7 @@ model User {
 
   // Relations
   progress             Progress[]
+  roadmaps             UserRoadmap[]
   selectedCareerGoalId String?     @map("selected_career_goal_id")
   selectedCareerGoal   CareerGoal? @relation(fields: [selectedCareerGoalId], references: [id], onDelete: SetNull)
 
@@ -52,18 +53,20 @@ model User {
 }
 
 model Skill {
-  id          String          @id @default(uuid())
-  name        String          @unique @db.VarChar(200)
-  category    String          @db.VarChar(100)
-  description String?         @db.Text
-  difficulty  SkillDifficulty @default(BEGINNER)
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
+  id              String          @id @default(uuid())
+  name            String          @unique @db.VarChar(200)
+  category        String          @db.VarChar(100)
+  description     String?         @db.Text
+  difficulty      SkillDifficulty @default(BEGINNER)
+  isUserGenerated Boolean         @default(false) @map("is_user_generated")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
 
   // Relations — directed graph edges
-  parentEdges SkillEdge[] @relation("ParentSkill")
-  childEdges  SkillEdge[] @relation("ChildSkill")
+  parentEdges SkillEdge[]   @relation("ParentSkill")
+  childEdges  SkillEdge[]   @relation("ChildSkill")
   progress    Progress[]
+  roadmaps    UserRoadmap[]
 
   @@index([category])
   @@index([difficulty])
@@ -113,4 +116,23 @@ model CareerGoal {
   users User[]
 
   @@map("career_goals")
+}
+
+// ─── UserRoadmap ─────────────────────────────────────────────────────────────
+// Tracks which skills belong to a user's AI-generated learning roadmap
+
+model UserRoadmap {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  skillId    String   @map("skill_id")
+  topic      String   @db.VarChar(300)  // what the user said they want to learn
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([userId])
+  @@map("user_roadmaps")
 }

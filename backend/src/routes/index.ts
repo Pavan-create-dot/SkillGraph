@@ -6,6 +6,7 @@ import careerGoalRoutes from './careerGoal.routes';
 import progressRoutes from './progress.routes';
 import graphRoutes from './graph.routes';
 import edgeRoutes from './edge.routes';
+import roadmapRoutes from './roadmap.routes';
 
 const router = Router();
 
@@ -27,5 +28,6 @@ router.use('/career-goals', careerGoalRoutes);
 router.use('/progress', progressRoutes);
 router.use('/graph', graphRoutes);
 router.use('/edges', edgeRoutes);
+router.use('/roadmap', roadmapRoutes);
 
 export default router;

@@ -12,9 +12,9 @@ import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import dagre from '@dagrejs/dagre';
 
-import { useSkillGraph } from '../hooks/useSkillGraph';
+import { useMyRoadmap, useRoadmapStatus } from '../hooks/useRoadmap';
 import { useProgress } from '../hooks/useProgress';
-import { useSkills, useCategories } from '../hooks/useSkills';
+import { useCategories } from '../hooks/useSkills';
 import { useTopologicalOrder, useShortestPath } from '../hooks/useGraph';
 
 import SkillNode from '../components/graph/SkillNode';
@@ -68,12 +68,17 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction: 'TB' | 'LR
 };
 
 const SkillGraphPage: React.FC = () => {
-  const { data: graphData, isLoading: graphLoading, error: graphError } = useSkillGraph();
+  const { data: roadmapStatus } = useRoadmapStatus();
+  const hasRoadmap = roadmapStatus?.hasRoadmap ?? false;
+
+  const { data: roadmapData, isLoading: graphLoading, error: graphError } = useMyRoadmap(hasRoadmap);
   const { data: progressData, isLoading: progressLoading } = useProgress();
   const { data: categories = [] } = useCategories();
-  const { data: skillsResult } = useSkills(1, 100);
-  const skills = skillsResult?.data ?? [];
   const { data: topologicalOrderRaw } = useTopologicalOrder();
+
+  // Shape roadmapData into the same format used by graph-building logic below
+  const graphData = roadmapData ?? null;
+  const skills = roadmapData?.nodes ?? [];
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -231,7 +236,28 @@ const SkillGraphPage: React.FC = () => {
 
   const loading = graphLoading || progressLoading;
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Loading Knowledge Graph...</div>;
+  // ─── No roadmap state ─────────────────────────────────────────────────────
+  if (!graphLoading && !hasRoadmap) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center gap-6">
+        <div className="text-6xl">🗺️</div>
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">No Roadmap Yet</h2>
+          <p className="text-slate-400 max-w-sm">
+            You haven't generated your personalized learning path yet. Answer a few questions and let Gemini AI build your skill graph.
+          </p>
+        </div>
+        <a
+          href="/onboarding"
+          className="btn-primary px-8 py-3 text-base font-semibold bg-gradient-to-r from-primary-600 to-accent-600"
+        >
+          🤖 Generate My Roadmap
+        </a>
+      </div>
+    );
+  }
+
+  if (loading) return <div className="p-8 text-center text-slate-400">Loading your Knowledge Graph…</div>;
   if (graphError) return <div className="p-8 text-center text-red-500">Error loading graph data.</div>;
 
   return (

@@ -13,6 +13,7 @@ import DashboardPage from './pages/DashboardPage';
 import SkillsPage from './pages/SkillsPage';
 import SkillGraphPage from './pages/SkillGraphPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
+import OnboardingPage from './pages/OnboardingPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -47,6 +48,8 @@ const App: React.FC = () => {
                 <Route path="/skills/graph" element={<SkillGraphPage />} />
                 <Route path="/career-goals" element={<CareerGoalsPage />} />
               </Route>
+              {/* Onboarding has its own full-screen layout */}
+              <Route path="/onboarding" element={<OnboardingPage />} />
             </Route>
 
             {/* ─── Error Pages ────────────────────────────────────────── */}
