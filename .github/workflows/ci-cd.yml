@@ -94,8 +94,10 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          echo "https://skillgraph-backend-ljgc.onrender.com/api/v1" | vercel env add VITE_API_URL production --token ${{ secrets.VERCEL_TOKEN }} --yes 2>/dev/null || true
-          echo "https://skillgraph-backend-ljgc.onrender.com/api/v1" | vercel env add VITE_API_URL preview --token ${{ secrets.VERCEL_TOKEN }} --yes 2>/dev/null || true
+          vercel env rm VITE_API_URL production --token ${{ secrets.VERCEL_TOKEN }} --yes || true
+          vercel env rm VITE_API_URL preview --token ${{ secrets.VERCEL_TOKEN }} --yes || true
+          vercel env add VITE_API_URL https://skillgraph-backend-ljgc.onrender.com/api/v1 production --token ${{ secrets.VERCEL_TOKEN }} --yes
+          vercel env add VITE_API_URL https://skillgraph-backend-ljgc.onrender.com/api/v1 preview --token ${{ secrets.VERCEL_TOKEN }} --yes
 
       - name: Pull Vercel env & build
         env:
