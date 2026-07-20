@@ -14,8 +14,8 @@ import dagre from '@dagrejs/dagre';
 
 import { useMyRoadmap, useRoadmapStatus } from '../hooks/useRoadmap';
 import { useProgress } from '../hooks/useProgress';
-import { useCategories } from '../hooks/useSkills';
-import { useTopologicalOrder, useShortestPath } from '../hooks/useGraph';
+import { useCategories, type Skill } from '../hooks/useSkills';
+import type { SkillEdge } from '../hooks/useSkillGraph';
 
 import SkillNode from '../components/graph/SkillNode';
 import GraphToolbar from '../components/graph/GraphToolbar';
@@ -25,6 +25,111 @@ import type { ProgressStatus } from '../types';
 // Map custom nodes
 const nodeTypes = {
   skillNode: SkillNode,
+};
+
+// Stable constant fallbacks to prevent identity changes on render
+const EMPTY_ARRAY: any[] = [];
+
+// ── Client-side graph algorithms ─────────────────────────────────────────────
+
+const computeTopologicalOrder = (nodes: Skill[], edges: SkillEdge[]): Skill[] => {
+  const adj = new Map<string, string[]>();
+  const inDegree = new Map<string, number>();
+
+  nodes.forEach((n) => {
+    adj.set(n.id, []);
+    inDegree.set(n.id, 0);
+  });
+
+  edges.forEach((e) => {
+    if (adj.has(e.parentSkillId) && adj.has(e.childSkillId)) {
+      adj.get(e.parentSkillId)!.push(e.childSkillId);
+      inDegree.set(e.childSkillId, (inDegree.get(e.childSkillId) || 0) + 1);
+    }
+  });
+
+  const queue: string[] = [];
+  inDegree.forEach((deg, id) => {
+    if (deg === 0) queue.push(id);
+  });
+
+  const order: Skill[] = [];
+  while (queue.length > 0) {
+    const u = queue.shift()!;
+    const node = nodes.find((n) => n.id === u);
+    if (node) order.push(node);
+
+    const neighbors = adj.get(u) || [];
+    for (const v of neighbors) {
+      inDegree.set(v, inDegree.get(v)! - 1);
+      if (inDegree.get(v) === 0) {
+        queue.push(v);
+      }
+    }
+  }
+
+  // Fallback: if there is a cycle or disconnected nodes, append unvisited ones
+  if (order.length < nodes.length) {
+    const visitedIds = new Set(order.map((n) => n.id));
+    nodes.forEach((n) => {
+      if (!visitedIds.has(n.id)) {
+        order.push(n);
+      }
+    });
+  }
+
+  return order;
+};
+
+const computeShortestPath = (
+  nodes: Skill[],
+  edges: SkillEdge[],
+  startId: string | null,
+  endId: string | null
+): Skill[] => {
+  if (!startId || !endId || startId === endId) return [];
+
+  const adj = new Map<string, string[]>();
+  nodes.forEach((n) => adj.set(n.id, []));
+  edges.forEach((e) => {
+    if (adj.has(e.parentSkillId) && adj.has(e.childSkillId)) {
+      adj.get(e.parentSkillId)!.push(e.childSkillId);
+    }
+  });
+
+  const queue: string[] = [startId];
+  const visited = new Set<string>([startId]);
+  const parent = new Map<string, string>();
+
+  let found = false;
+  while (queue.length > 0) {
+    const u = queue.shift()!;
+    if (u === endId) {
+      found = true;
+      break;
+    }
+
+    const neighbors = adj.get(u) || [];
+    for (const v of neighbors) {
+      if (!visited.has(v)) {
+        visited.add(v);
+        parent.set(v, u);
+        queue.push(v);
+      }
+    }
+  }
+
+  if (!found) return [];
+
+  const path: Skill[] = [];
+  let curr: string | undefined = endId;
+  while (curr) {
+    const node = nodes.find((n) => n.id === curr);
+    if (node) path.unshift(node);
+    curr = parent.get(curr);
+  }
+
+  return path;
 };
 
 // Dagre Layout Setup
@@ -73,12 +178,11 @@ const SkillGraphPage: React.FC = () => {
 
   const { data: roadmapData, isLoading: graphLoading, error: graphError } = useMyRoadmap(hasRoadmap);
   const { data: progressData, isLoading: progressLoading } = useProgress();
-  const { data: categories = [] } = useCategories();
-  const { data: topologicalOrderRaw } = useTopologicalOrder();
+  const { data: categories = EMPTY_ARRAY } = useCategories();
 
   // Shape roadmapData into the same format used by graph-building logic below
   const graphData = roadmapData ?? null;
-  const skills = roadmapData?.nodes ?? [];
+  const skills = roadmapData?.nodes ?? EMPTY_ARRAY;
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -93,15 +197,16 @@ const SkillGraphPage: React.FC = () => {
   const [pathStart, setPathStart] = useState<string>('');
   const [pathEnd, setPathEnd] = useState<string>('');
 
-  const { data: shortestPathRaw } = useShortestPath(
-    pathStart || null,
-    pathEnd || null
-  );
+  // Compute topological order and shortest path client-side
+  const topologicalOrder = useMemo(() => {
+    if (!graphData) return EMPTY_ARRAY;
+    return computeTopologicalOrder(graphData.nodes, graphData.edges);
+  }, [graphData]);
 
-  // Stable empty-array fallbacks — avoids new references every render
-  const EMPTY: never[] = useMemo(() => [], []);
-  const shortestPath = shortestPathRaw ?? EMPTY;
-  const topologicalOrder = topologicalOrderRaw ?? EMPTY;
+  const shortestPath = useMemo(() => {
+    if (!graphData || !pathStart || !pathEnd) return EMPTY_ARRAY;
+    return computeShortestPath(graphData.nodes, graphData.edges, pathStart, pathEnd);
+  }, [graphData, pathStart, pathEnd]);
 
   // Find currently selected skill object
   const selectedSkill = useMemo(() => {
