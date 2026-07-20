@@ -9,9 +9,9 @@ export const getPrerequisites = asyncHandler(async (req: Request, res: Response)
 
   try {
     const prerequisites = await graphService.getPrerequisiteChain(skillId);
-    res.status(200).json(
-      ApiResponse.ok('Prerequisite chain retrieved successfully', prerequisites)
-    );
+    res
+      .status(200)
+      .json(ApiResponse.ok('Prerequisite chain retrieved successfully', prerequisites));
   } catch (error: any) {
     if (error.message === 'Skill not found') {
       throw ApiError.notFound('Skill not found');
@@ -25,9 +25,7 @@ export const getSkillTree = asyncHandler(async (req: Request, res: Response) => 
 
   try {
     const tree = await graphService.getSkillTree(skillId);
-    res.status(200).json(
-      ApiResponse.ok('Skill downstream tree retrieved successfully', tree)
-    );
+    res.status(200).json(ApiResponse.ok('Skill downstream tree retrieved successfully', tree));
   } catch (error: any) {
     if (error.message === 'Skill not found') {
       throw ApiError.notFound('Skill not found');
@@ -38,9 +36,7 @@ export const getSkillTree = asyncHandler(async (req: Request, res: Response) => 
 
 export const getTopologicalOrder = asyncHandler(async (_req: Request, res: Response) => {
   const order = await graphService.getTopologicalOrder();
-  res.status(200).json(
-    ApiResponse.ok('Topological sort order retrieved successfully', order)
-  );
+  res.status(200).json(ApiResponse.ok('Topological sort order retrieved successfully', order));
 });
 
 export const getShortestPath = asyncHandler(async (req: Request, res: Response) => {
@@ -55,15 +51,11 @@ export const getShortestPath = asyncHandler(async (req: Request, res: Response) 
     const path = await graphService.getShortestPath(fromId, toId);
 
     if (!path) {
-      res.status(200).json(
-        ApiResponse.ok('No path exists between these skills', [])
-      );
+      res.status(200).json(ApiResponse.ok('No path exists between these skills', []));
       return;
     }
 
-    res.status(200).json(
-      ApiResponse.ok('Shortest path calculated successfully', path)
-    );
+    res.status(200).json(ApiResponse.ok('Shortest path calculated successfully', path));
   } catch (error: any) {
     if (error.message === 'Invalid start or end skill ID') {
       throw ApiError.badRequest('Invalid start or end skill ID provided.');

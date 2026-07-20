@@ -11,9 +11,7 @@ export const getUserProgress = asyncHandler(async (req: Request, res: Response) 
 
   const progress = await progressService.getUserProgress(req.user.id);
 
-  res.status(200).json(
-    ApiResponse.ok('User progress retrieved successfully', progress),
-  );
+  res.status(200).json(ApiResponse.ok('User progress retrieved successfully', progress));
 });
 
 export const upsertProgress = asyncHandler(async (req: Request, res: Response) => {
@@ -32,9 +30,12 @@ export const upsertProgress = asyncHandler(async (req: Request, res: Response) =
     throw ApiError.badRequest('Invalid status');
   }
 
-  const updatedProgress = await progressService.upsertProgress(req.user.id, skillId as string, mastery, status);
-
-  res.status(200).json(
-    ApiResponse.ok('Progress updated successfully', updatedProgress),
+  const updatedProgress = await progressService.upsertProgress(
+    req.user.id,
+    skillId as string,
+    mastery,
+    status,
   );
+
+  res.status(200).json(ApiResponse.ok('Progress updated successfully', updatedProgress));
 });

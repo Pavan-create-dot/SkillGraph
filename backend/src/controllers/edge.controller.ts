@@ -36,16 +36,14 @@ export const createEdge = asyncHandler(async (req: Request, res: Response) => {
   const wouldFormCycle = await graphService.hasCycle(parentSkillId, childSkillId);
   if (wouldFormCycle) {
     throw ApiError.badRequest(
-      `Cannot add dependency: making '${childSkill.name}' depend on '${parentSkill.name}' would introduce a circular dependency.`
+      `Cannot add dependency: making '${childSkill.name}' depend on '${parentSkill.name}' would introduce a circular dependency.`,
     );
   }
 
   // 5. Create edge
   const edge = await skillRepository.createEdge(parentSkillId, childSkillId);
 
-  res.status(201).json(
-    ApiResponse.created('Dependency edge created successfully', edge)
-  );
+  res.status(201).json(ApiResponse.created('Dependency edge created successfully', edge));
 });
 
 export const deleteEdge = asyncHandler(async (req: Request, res: Response) => {
@@ -59,7 +57,5 @@ export const deleteEdge = asyncHandler(async (req: Request, res: Response) => {
 
   await skillRepository.deleteEdge(edgeId);
 
-  res.status(200).json(
-    ApiResponse.ok('Dependency edge deleted successfully')
-  );
+  res.status(200).json(ApiResponse.ok('Dependency edge deleted successfully'));
 });

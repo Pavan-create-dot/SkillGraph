@@ -11,25 +11,19 @@ export const listSkills = asyncHandler(async (req: Request, res: Response) => {
 
   const result = await skillService.listSkills({ page, limit, category });
 
-  res.status(200).json(
-    ApiResponse.ok('Skills retrieved successfully', result),
-  );
+  res.status(200).json(ApiResponse.ok('Skills retrieved successfully', result));
 });
 
 export const listCategories = asyncHandler(async (_req: Request, res: Response) => {
   const categories = await skillService.getCategories();
 
-  res.status(200).json(
-    ApiResponse.ok('Categories retrieved successfully', categories),
-  );
+  res.status(200).json(ApiResponse.ok('Categories retrieved successfully', categories));
 });
 
 export const getGraph = asyncHandler(async (_req: Request, res: Response) => {
   const graphData = await skillService.getGraphData();
 
-  res.status(200).json(
-    ApiResponse.ok('Skill graph retrieved successfully', graphData),
-  );
+  res.status(200).json(ApiResponse.ok('Skill graph retrieved successfully', graphData));
 });
 
 export const getSkillById = asyncHandler(async (req: Request, res: Response) => {
@@ -40,7 +34,5 @@ export const getSkillById = asyncHandler(async (req: Request, res: Response) => 
     throw ApiError.notFound('Skill not found');
   }
 
-  res.status(200).json(
-    ApiResponse.ok('Skill details retrieved successfully', skill),
-  );
+  res.status(200).json(ApiResponse.ok('Skill details retrieved successfully', skill));
 });

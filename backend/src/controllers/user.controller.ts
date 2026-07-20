@@ -11,9 +11,7 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
 
   const user = await userService.getProfile(req.user.id);
 
-  res.status(200).json(
-    ApiResponse.ok('Profile retrieved successfully', user),
-  );
+  res.status(200).json(ApiResponse.ok('Profile retrieved successfully', user));
 });
 
 export const updateCareerGoal = asyncHandler(async (req: Request, res: Response) => {
@@ -29,7 +27,5 @@ export const updateCareerGoal = asyncHandler(async (req: Request, res: Response)
 
   const user = await userService.updateSelectedCareerGoal(req.user.id, careerGoalId);
 
-  res.status(200).json(
-    ApiResponse.ok('Career goal updated successfully', user),
-  );
+  res.status(200).json(ApiResponse.ok('Career goal updated successfully', user));
 });

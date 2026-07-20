@@ -5,7 +5,12 @@ export class ProgressService {
     return progressRepository.findByUserId(userId);
   }
 
-  async upsertProgress(userId: string, skillId: string, mastery: number, status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED') {
+  async upsertProgress(
+    userId: string,
+    skillId: string,
+    mastery: number,
+    status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED',
+  ) {
     return progressRepository.upsert(userId, skillId, mastery, status);
   }
 }

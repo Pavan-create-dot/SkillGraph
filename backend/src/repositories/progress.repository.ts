@@ -11,7 +11,12 @@ export class ProgressRepository {
     });
   }
 
-  async upsert(userId: string, skillId: string, mastery: number, status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED') {
+  async upsert(
+    userId: string,
+    skillId: string,
+    mastery: number,
+    status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED',
+  ) {
     return prisma.progress.upsert({
       where: {
         userId_skillId: {

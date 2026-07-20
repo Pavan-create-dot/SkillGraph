@@ -8,9 +8,7 @@ import { selectCareerGoalSchema } from '../validators/careerGoal.validator';
 export const listCareerGoals = asyncHandler(async (_req: Request, res: Response) => {
   const careerGoals = await careerGoalService.listCareerGoals();
 
-  res.status(200).json(
-    ApiResponse.ok('Career goals retrieved successfully', careerGoals),
-  );
+  res.status(200).json(ApiResponse.ok('Career goals retrieved successfully', careerGoals));
 });
 
 export const selectCareerGoal = asyncHandler(async (req: Request, res: Response) => {
@@ -21,7 +19,5 @@ export const selectCareerGoal = asyncHandler(async (req: Request, res: Response)
   const { body } = selectCareerGoalSchema.parse({ body: req.body });
   const result = await careerGoalService.selectCareerGoal(req.user.id, body);
 
-  res.status(200).json(
-    ApiResponse.ok(result.message, result.careerGoal),
-  );
+  res.status(200).json(ApiResponse.ok(result.message, result.careerGoal));
 });
