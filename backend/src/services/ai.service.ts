@@ -89,7 +89,10 @@ Respond with ONLY valid JSON in this exact format (no markdown, no extra text):
       const text = result.response.text().trim();
 
       // Strip markdown code fences if present
-      const jsonText = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+      const jsonText = text
+        .replace(/^```(?:json)?\n?/, '')
+        .replace(/\n?```$/, '')
+        .trim();
 
       const parsed: GeneratedRoadmap = JSON.parse(jsonText);
 

@@ -152,11 +152,12 @@ export const getRoadmapStatus = asyncHandler(async (req: Request, res: Response)
   const userId = req.user!.id;
 
   const count = await prisma.userRoadmap.count({ where: { userId } });
-  const hasTopic = count > 0
-    ? (await prisma.userRoadmap.findFirst({ where: { userId }, select: { topic: true } }))?.topic
-    : null;
+  const hasTopic =
+    count > 0
+      ? (await prisma.userRoadmap.findFirst({ where: { userId }, select: { topic: true } }))?.topic
+      : null;
 
-  res.status(200).json(
-    ApiResponse.ok('Status retrieved', { hasRoadmap: count > 0, topic: hasTopic }),
-  );
+  res
+    .status(200)
+    .json(ApiResponse.ok('Status retrieved', { hasRoadmap: count > 0, topic: hasTopic }));
 });
