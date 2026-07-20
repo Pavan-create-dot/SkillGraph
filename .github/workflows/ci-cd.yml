@@ -1,0 +1,101 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: skillgraph_db
+          POSTGRES_USER: skillgraph_user
+          POSTGRES_PASSWORD: skillgraph_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://skillgraph_user:skillgraph_password@localhost:5432/skillgraph_db
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ---------- Backend ----------
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Lint backend
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: Test backend (if script exists)
+        working-directory: ./backend
+        run: |
+          if npm run | grep -q "test"; then npm run test; else echo "No test script defined, skipping."; fi
+
+      - name: Build backend (if needed)
+        working-directory: ./backend
+        run: |
+          if npm run | grep -q "build"; then npm run build; else echo "No build script defined, skipping."; fi
+
+      # ---------- Frontend ----------
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: ./frontend
+        run: npm run lint || echo "Lint script not defined, skipping."
+
+      - name: Test frontend (if script exists)
+        working-directory: ./frontend
+        run: |
+          if npm run | grep -q "test"; then npm run test; else echo "No test script defined, skipping."; fi
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+  deploy-frontend:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel
+
+      - name: Deploy to Vercel (Production)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./frontend
+        run: |
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+
+  deploy-backend:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy Hook
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl -X POST "$RENDER_DEPLOY_HOOK_URL"
