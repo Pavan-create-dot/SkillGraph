@@ -183,3 +183,5 @@ Open `http://localhost:5173` to interact with the UI.
 - **Phase 3: Skill Gap Analysis** — Calculate mastery gap between current skills and the target career goal requirements.
 - **Phase 4: Adaptive Learning Paths** — Generate dynamic learning roadmaps using Dijkstra / topological sorting algorithms.
 - **Phase 5: AI Micro Lessons & Resume Skill Extraction** — OpenAI/Claude API integration to extract skills from PDF resumes and generate micro lessons.
+
+<!-- trigger CI/CD -->
