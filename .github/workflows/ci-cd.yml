@@ -88,13 +88,31 @@ jobs:
       - name: Install Vercel CLI
         run: npm i -g vercel
 
+      - name: Set VITE_API_URL in Vercel environment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "https://skillgraph-backend-ljgc.onrender.com/api/v1" | vercel env add VITE_API_URL production --token ${{ secrets.VERCEL_TOKEN }} --yes 2>/dev/null || true
+          echo "https://skillgraph-backend-ljgc.onrender.com/api/v1" | vercel env add VITE_API_URL preview --token ${{ secrets.VERCEL_TOKEN }} --yes 2>/dev/null || true
+
+      - name: Pull Vercel env & build
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
+
       - name: Deploy to Vercel (Production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }}
 
   deploy-backend:
     needs: build-and-test
