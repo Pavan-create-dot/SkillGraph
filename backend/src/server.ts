@@ -58,6 +58,6 @@ const startServer = async (): Promise<void> => {
 };
 
 startServer().catch((error) => {
-  console.error('Failed to start server:', error);
+  logger.fatal({ msg: 'Failed to start server', error });
   process.exit(1);
 });

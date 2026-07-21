@@ -7,6 +7,7 @@ export const rateLimiter = rateLimit({
   max: env.RATE_LIMIT_MAX_REQUESTS,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.path === '/api/v1/health' || req.path === '/health',
   message: {
     success: false,
     statusCode: 429,

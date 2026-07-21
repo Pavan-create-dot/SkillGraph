@@ -15,12 +15,20 @@ export const prisma =
     ],
   });
 
-(prisma as any).$on('error', (e: any) => {
-  logger.error({ msg: 'Prisma error', error: e.message });
+type PrismaEventListener = {
+  $on: (event: 'error' | 'warn', listener: (e: unknown) => void) => void;
+};
+
+const prismaEventListener = prisma as PrismaEventListener;
+
+prismaEventListener.$on('error', (e) => {
+  const errorMessage = e instanceof Error ? e.message : String(e);
+  logger.error({ msg: 'Prisma error', error: errorMessage });
 });
 
-(prisma as any).$on('warn', (e: any) => {
-  logger.warn({ msg: 'Prisma warning', warning: e.message });
+prismaEventListener.$on('warn', (e) => {
+  const warningMessage = e instanceof Error ? e.message : String(e);
+  logger.warn({ msg: 'Prisma warning', warning: warningMessage });
 });
 
 if (process.env.NODE_ENV !== 'production') {

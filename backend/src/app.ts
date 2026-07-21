@@ -5,7 +5,6 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import { env } from './config/env';
-import { logger } from './config/logger';
 import { rateLimiter } from './middleware/rateLimiter';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';

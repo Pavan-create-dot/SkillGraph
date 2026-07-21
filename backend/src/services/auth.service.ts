@@ -63,7 +63,8 @@ export class AuthService {
       role: user.role as Role,
     });
 
-    const { password: _, ...safeUser } = user;
+    const safeUser = { ...user };
+    delete (safeUser as { password?: string }).password;
 
     return { user: safeUser, tokens };
   }

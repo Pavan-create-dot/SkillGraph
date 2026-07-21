@@ -12,8 +12,8 @@ export const getPrerequisites = asyncHandler(async (req: Request, res: Response)
     res
       .status(200)
       .json(ApiResponse.ok('Prerequisite chain retrieved successfully', prerequisites));
-  } catch (error: any) {
-    if (error.message === 'Skill not found') {
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Skill not found') {
       throw ApiError.notFound('Skill not found');
     }
     throw error;
@@ -26,8 +26,8 @@ export const getSkillTree = asyncHandler(async (req: Request, res: Response) => 
   try {
     const tree = await graphService.getSkillTree(skillId);
     res.status(200).json(ApiResponse.ok('Skill downstream tree retrieved successfully', tree));
-  } catch (error: any) {
-    if (error.message === 'Skill not found') {
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Skill not found') {
       throw ApiError.notFound('Skill not found');
     }
     throw error;
@@ -56,8 +56,8 @@ export const getShortestPath = asyncHandler(async (req: Request, res: Response) 
     }
 
     res.status(200).json(ApiResponse.ok('Shortest path calculated successfully', path));
-  } catch (error: any) {
-    if (error.message === 'Invalid start or end skill ID') {
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Invalid start or end skill ID') {
       throw ApiError.badRequest('Invalid start or end skill ID provided.');
     }
     throw error;

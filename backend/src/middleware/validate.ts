@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodObject, ZodError } from 'zod';
+import { ZodError, ZodSchema } from 'zod';
 
 /**
  * Generic Zod validation middleware factory.
@@ -7,7 +7,7 @@ import { ZodObject, ZodError } from 'zod';
  *
  * @param schema - A Zod object schema with optional body, params, query keys
  */
-export const validate = (schema: ZodObject<any, any, any>) => {
+export const validate = (schema: ZodSchema<unknown>) => {
   return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
       await schema.parseAsync({

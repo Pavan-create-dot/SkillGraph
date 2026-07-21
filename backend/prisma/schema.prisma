@@ -1,6 +1,6 @@
 // ============================================================
 // SkillGraph AI — Prisma Schema
-// Phase 1: Foundation (User, Skill, SkillEdge, Progress, CareerGoal)
+// Foundation: User, Skill, SkillEdge, Progress, UserRoadmap
 // ============================================================
 
 generator client {
@@ -34,22 +34,31 @@ enum ProgressStatus {
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
-  id        String   @id @default(uuid())
-  name      String   @db.VarChar(100)
-  email     String   @unique @db.VarChar(255)
-  password  String   @db.VarChar(255)
-  role      Role     @default(USER)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                    String          @id @default(uuid())
+  name                  String          @db.VarChar(100)
+  email                 String          @unique @db.VarChar(255)
+  password              String          @db.VarChar(255)
+  role                  Role            @default(USER)
+  selectedCareerGoalId  String?         @map("selected_career_goal_id")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
 
   // Relations
-  progress             Progress[]
-  roadmaps             UserRoadmap[]
-  selectedCareerGoalId String?     @map("selected_career_goal_id")
-  selectedCareerGoal   CareerGoal? @relation(fields: [selectedCareerGoalId], references: [id], onDelete: SetNull)
+  progress              Progress[]
+  roadmaps              UserRoadmap[]
+  selectedCareerGoal    CareerGoal?     @relation("SelectedCareerGoal", fields: [selectedCareerGoalId], references: [id], onDelete: SetNull)
 
   @@index([email])
   @@map("users")
+}
+
+model CareerGoal {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.VarChar(200)
+  description String?  @db.Text
+  users       User[]   @relation("SelectedCareerGoal")
+
+  @@map("career_goals")
 }
 
 model Skill {
@@ -107,26 +116,15 @@ model Progress {
   @@map("progress")
 }
 
-model CareerGoal {
-  id          String  @id @default(uuid())
-  name        String  @unique @db.VarChar(200)
-  description String? @db.Text
-
-  // Relations
-  users User[]
-
-  @@map("career_goals")
-}
-
 // ─── UserRoadmap ─────────────────────────────────────────────────────────────
 // Tracks which skills belong to a user's AI-generated learning roadmap
 
 model UserRoadmap {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  skillId    String   @map("skill_id")
-  topic      String   @db.VarChar(300)  // what the user said they want to learn
-  createdAt  DateTime @default(now()) @map("created_at")
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  skillId   String   @map("skill_id")
+  topic     String   @db.VarChar(300) // what the user said they want to learn
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)

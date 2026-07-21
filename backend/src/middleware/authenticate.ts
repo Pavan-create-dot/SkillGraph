@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { ApiError } from '../utils/ApiError';
-import { JwtPayload, Role } from '../types';
+import { JwtPayload } from '../types';
 
 export const authenticate = (req: Request, _res: Response, next: NextFunction): void => {
   try {

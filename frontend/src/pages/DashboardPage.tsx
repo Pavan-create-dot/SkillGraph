@@ -130,22 +130,6 @@ const DashboardPage: React.FC = () => {
           </Link>
         </div>
 
-        {/* Card: Onboarding */}
-        <div className="card hover:border-accent-500/50 transition-colors group cursor-pointer" onClick={() => navigate('/onboarding')}>
-          <div className="text-3xl mb-4">✨</div>
-          <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-accent-400 transition-colors">
-            {hasRoadmap ? 'New Roadmap' : 'Get Started'}
-          </h3>
-          <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-            {hasRoadmap
-              ? 'Want to learn something new? Generate a fresh roadmap for a different topic.'
-              : 'Tell us what you want to learn and let Gemini AI build your personalized path.'
-            }
-          </p>
-          <button id="nav-onboarding" className="btn-secondary group-hover:bg-accent-600 group-hover:text-white transition-colors">
-            {hasRoadmap ? '🔄 Regenerate →' : '🤖 Generate Path →'}
-          </button>
-        </div>
       </div>
 
       {/* ─── System Status ────────────────────────────────────────── */}
@@ -154,7 +138,7 @@ const DashboardPage: React.FC = () => {
         <div className="border border-slate-700 rounded-lg overflow-hidden divide-y divide-slate-700">
           {[
             { name: 'Backend API (Render)', status: 'Active', desc: 'Node.js + Express with Helmet, Rate Limiter, CORS' },
-            { name: 'PostgreSQL Database', status: 'Active', desc: 'Prisma ORM with 6 relational tables' },
+            { name: 'PostgreSQL Database', status: 'Active', desc: 'Prisma ORM with 5 relational tables' },
             { name: 'Authentication Layer', status: 'Active', desc: 'JWT access & refresh tokens configured' },
             { name: 'Gemini AI', status: 'Active', desc: 'Personalized roadmap generation via Google AI' },
           ].map((item) => (

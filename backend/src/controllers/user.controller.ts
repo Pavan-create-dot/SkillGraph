@@ -3,6 +3,7 @@ import { userService } from '../services/user.service';
 import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
+import { UpdateProfileInput } from '../validators/user.validator';
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
@@ -14,18 +15,13 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(ApiResponse.ok('Profile retrieved successfully', user));
 });
 
-export const updateCareerGoal = asyncHandler(async (req: Request, res: Response) => {
+export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
     throw ApiError.unauthorized();
   }
 
-  const { careerGoalId } = req.body;
-  // allow null to clear goal
-  if (careerGoalId !== null && typeof careerGoalId !== 'string') {
-    throw ApiError.badRequest('careerGoalId must be a string or null');
-  }
+  const payload = req.body as UpdateProfileInput;
+  const updatedUser = await userService.updateProfile(req.user.id, payload);
 
-  const user = await userService.updateSelectedCareerGoal(req.user.id, careerGoalId);
-
-  res.status(200).json(ApiResponse.ok('Career goal updated successfully', user));
+  res.status(200).json(ApiResponse.ok('Profile updated successfully', updatedUser));
 });

@@ -10,7 +10,6 @@ export class UserRepository {
         name: true,
         email: true,
         role: true,
-        selectedCareerGoalId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -43,6 +42,21 @@ export class UserRepository {
     });
   }
 
+  async update(id: string, data: Prisma.UserUpdateInput) {
+    return prisma.user.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
   async findAll(params?: { skip?: number; take?: number }) {
     return prisma.user.findMany({
       skip: params?.skip,
@@ -52,23 +66,10 @@ export class UserRepository {
         name: true,
         email: true,
         role: true,
-        selectedCareerGoalId: true,
         createdAt: true,
         updatedAt: true,
       },
       orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async updateSelectedCareerGoal(id: string, careerGoalId: string | null) {
-    return prisma.user.update({
-      where: { id },
-      data: { selectedCareerGoalId: careerGoalId },
-      select: {
-        id: true,
-        name: true,
-        selectedCareerGoalId: true,
-      },
     });
   }
 

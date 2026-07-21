@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import { AuthUser } from './index';
 
 declare global {

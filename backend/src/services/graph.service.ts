@@ -1,3 +1,4 @@
+import { Skill, SkillEdge } from '@prisma/client';
 import { skillRepository } from '../repositories/skill.repository';
 
 export interface GraphNode {
@@ -22,11 +23,16 @@ export class GraphService {
    * - reverseAdjList: Maps a child skill ID to a list of parent skill IDs (incoming edges).
    * - skillMap: Map of skill ID to full Skill object details.
    */
-  private async buildAdjacencyLists() {
+  private async buildAdjacencyLists(): Promise<{
+    adjList: Record<string, string[]>;
+    reverseAdjList: Record<string, string[]>;
+    skillMap: Record<string, Skill>;
+    edges: SkillEdge[];
+  }> {
     const { nodes, edges } = await skillRepository.getGraphData();
     const adjList: Record<string, string[]> = {};
     const reverseAdjList: Record<string, string[]> = {};
-    const skillMap: Record<string, any> = {};
+    const skillMap: Record<string, Skill> = {};
 
     for (const node of nodes) {
       skillMap[node.id] = node;
@@ -92,7 +98,7 @@ export class GraphService {
    * BFS Traversal: Retrieves the full prerequisite chain (ancestors) for a given skill.
    * Returns skills ordered such that a skill appears after all its prerequisites.
    */
-  async getPrerequisiteChain(skillId: string): Promise<any[]> {
+  async getPrerequisiteChain(skillId: string): Promise<Skill[]> {
     const { reverseAdjList, skillMap } = await this.buildAdjacencyLists();
 
     if (!skillMap[skillId]) {
@@ -105,7 +111,8 @@ export class GraphService {
 
     // Gather all ancestors using BFS
     while (queue.length > 0) {
-      const current = queue.shift()!;
+      const current = queue.shift();
+      if (!current) break;
       const parents = reverseAdjList[current] || [];
       for (const parent of parents) {
         if (!visited.has(parent)) {
@@ -117,7 +124,7 @@ export class GraphService {
     }
 
     // Sort prerequisites topologically to ensure a logical learning order
-    const orderedPrerequisites: any[] = [];
+    const orderedPrerequisites: Skill[] = [];
     const topologicalOrder = await this.getTopologicalOrder();
 
     for (const orderedId of topologicalOrder) {
@@ -132,7 +139,7 @@ export class GraphService {
   /**
    * DFS Traversal: Retrieves the full skill tree (descendants) unlocked by a given skill.
    */
-  async getSkillTree(skillId: string): Promise<any[]> {
+  async getSkillTree(skillId: string): Promise<Skill[]> {
     const { adjList, skillMap } = await this.buildAdjacencyLists();
 
     if (!skillMap[skillId]) {
@@ -163,8 +170,8 @@ export class GraphService {
    * Topological Sort: Sorts all skills in a logical learning order.
    * Respects directed edge dependencies using Kahn's algorithm.
    */
-  async getTopologicalOrder(): Promise<any[]> {
-    const { adjList, reverseAdjList, skillMap } = await this.buildAdjacencyLists();
+  async getTopologicalOrder(): Promise<Skill[]> {
+    const { adjList, skillMap } = await this.buildAdjacencyLists();
     const inDegree: Record<string, number> = {};
     const queue: string[] = [];
     const order: string[] = [];
@@ -190,7 +197,8 @@ export class GraphService {
     }
 
     while (queue.length > 0) {
-      const current = queue.shift()!;
+      const current = queue.shift();
+      if (!current) break;
       order.push(current);
 
       const children = adjList[current] || [];
@@ -210,7 +218,7 @@ export class GraphService {
    * Shortest Path finding between two skills.
    * Uses BFS to find the minimal sequence of dependencies connecting two nodes.
    */
-  async getShortestPath(fromId: string, toId: string): Promise<any[] | null> {
+  async getShortestPath(fromId: string, toId: string): Promise<Skill[] | null> {
     const { adjList, skillMap } = await this.buildAdjacencyLists();
 
     if (!skillMap[fromId] || !skillMap[toId]) {
@@ -228,7 +236,8 @@ export class GraphService {
     let pathFound = false;
 
     while (queue.length > 0) {
-      const current = queue.shift()!;
+      const current = queue.shift();
+      if (!current) break;
 
       if (current === toId) {
         pathFound = true;
@@ -250,7 +259,7 @@ export class GraphService {
     }
 
     // Reconstruct the path
-    const path: any[] = [];
+    const path: Skill[] = [];
     let current = toId;
     while (current) {
       path.unshift(skillMap[current]);

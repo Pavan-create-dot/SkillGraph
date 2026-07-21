@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider } from './contexts/AuthContext';
@@ -12,8 +12,9 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import SkillsPage from './pages/SkillsPage';
 import SkillGraphPage from './pages/SkillGraphPage';
-import CareerGoalsPage from './pages/CareerGoalsPage';
 import OnboardingPage from './pages/OnboardingPage';
+import ProfilePage from './pages/ProfilePage';
+import HomePage from './pages/HomePage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -35,6 +36,7 @@ const App: React.FC = () => {
           <AuthProvider>
           <Routes>
             {/* ─── Public Routes / Auth ────────────────────────────────── */}
+            <Route path="/" element={<HomePage />} />
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -46,7 +48,7 @@ const App: React.FC = () => {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/skills" element={<SkillsPage />} />
                 <Route path="/skills/graph" element={<SkillGraphPage />} />
-                <Route path="/career-goals" element={<CareerGoalsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
               </Route>
               {/* Onboarding has its own full-screen layout */}
               <Route path="/onboarding" element={<OnboardingPage />} />
@@ -54,7 +56,6 @@ const App: React.FC = () => {
 
             {/* ─── Error Pages ────────────────────────────────────────── */}
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AuthProvider>

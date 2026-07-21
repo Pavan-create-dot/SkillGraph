@@ -1,7 +1,7 @@
 import { prisma } from '../config/database';
 
 export class CareerGoalRepository {
-  async findAll() {
+  async list() {
     return prisma.careerGoal.findMany({
       orderBy: { name: 'asc' },
     });
@@ -13,8 +13,14 @@ export class CareerGoalRepository {
     });
   }
 
-  async count(): Promise<number> {
-    return prisma.careerGoal.count();
+  async selectForUser(userId: string, careerGoalId: string) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { selectedCareerGoalId: careerGoalId },
+      include: {
+        selectedCareerGoal: true,
+      },
+    });
   }
 }
 
