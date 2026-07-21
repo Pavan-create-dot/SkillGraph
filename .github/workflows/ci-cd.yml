@@ -46,8 +46,6 @@ jobs:
 
       - name: Lint backend
         working-directory: ./backend
-        env:
-          ESLINT_USE_FLAT_CONFIG: false
         run: npm run lint
 
       - name: Test backend (if script exists)
