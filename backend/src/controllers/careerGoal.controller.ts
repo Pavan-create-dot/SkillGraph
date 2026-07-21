@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { careerGoalService } from '../services/careerGoal.service';
+import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 import { selectCareerGoalSchema } from '../validators/careerGoal.validator';
