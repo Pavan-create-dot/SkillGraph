@@ -55,11 +55,30 @@ const createApp = (): Application => {
     app.use(morgan('dev'));
   }
 
-  // ─── Rate Limiting ────────────────────────────────────────────────────────
-  app.use(rateLimiter);
-
   // ─── Trust Proxy (for correct IP behind reverse proxy) ───────────────────
   app.set('trust proxy', 1);
+
+  // ─── Health check endpoint ───────────────────────────────────────────────
+  app.get('/api/v1/health', (_req: Request, res: Response) => {
+    res.status(200).json({
+      success: true,
+      message: 'SkillGraph API is running',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  app.get('/health', (_req: Request, res: Response) => {
+    res.status(200).json({
+      success: true,
+      message: 'SkillGraph API is running',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // ─── Rate Limiting ────────────────────────────────────────────────────────
+  app.use(rateLimiter);
 
   // ─── API Routes ───────────────────────────────────────────────────────────
   app.use('/api/v1', apiRoutes);
