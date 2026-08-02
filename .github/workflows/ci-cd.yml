@@ -33,11 +33,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: |
             backend/package-lock.json
             frontend/package-lock.json
+
+      - name: Show Node & npm versions
+        run: node -v && npm -v
 
       # ---------- Backend ----------
       - name: Install backend dependencies
@@ -46,7 +49,14 @@ jobs:
 
       - name: Lint backend
         working-directory: ./backend
-        run: npm run lint
+        run: |
+          if [ -f node_modules/.bin/eslint ]; then
+            npm run lint
+          else
+            echo "eslint not found in node_modules — dependencies may not have installed correctly."
+            ls -la node_modules || true
+            exit 1
+          fi
 
       - name: Test backend (if script exists)
         working-directory: ./backend

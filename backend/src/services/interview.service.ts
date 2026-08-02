@@ -17,9 +17,7 @@ export class InterviewService {
 
     // Use the role passed from the interview page; fall back to profile targetRole
     const targetRole =
-      (roleOverride && roleOverride.trim()) ||
-      user.targetRole ||
-      'Software Development Engineer';
+      (roleOverride && roleOverride.trim()) || user.targetRole || 'Software Development Engineer';
 
     logger.info({ userId, type, targetRole }, 'Starting interview session');
 
