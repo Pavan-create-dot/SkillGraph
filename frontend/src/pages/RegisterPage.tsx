@@ -27,7 +27,7 @@ const RegisterPage: React.FC = () => {
 
     try {
       await register(name, email, password);
-      navigate('/dashboard', { replace: true });
+      navigate('/resume', { replace: true });
     } catch (err: any) {
       if (err.response?.data?.errors) {
         setValidationErrors(err.response.data.errors);
@@ -42,14 +42,14 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="card">
-      <h2 className="text-2xl font-bold text-white mb-2 text-center">Get Started</h2>
-      <p className="text-slate-400 text-sm text-center mb-8">
+    <div>
+      <h2 className="text-2xl font-bold text-slate-900 mb-1 text-center">Get Started</h2>
+      <p className="text-slate-500 text-sm text-center mb-8">
         Create your free SkillGraph account
       </p>
 
       {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className="mb-6 p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
           {error}
         </div>
       )}
@@ -69,7 +69,7 @@ const RegisterPage: React.FC = () => {
             onChange={(e) => setName(e.target.value)}
           />
           {validationErrors.name && (
-            <p className="mt-1 text-xs text-red-400">{validationErrors.name[0]}</p>
+            <p className="mt-1 text-xs text-rose-600">{validationErrors.name[0]}</p>
           )}
         </div>
 
@@ -87,7 +87,7 @@ const RegisterPage: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
           />
           {validationErrors.email && (
-            <p className="mt-1 text-xs text-red-400">{validationErrors.email[0]}</p>
+            <p className="mt-1 text-xs text-rose-600">{validationErrors.email[0]}</p>
           )}
         </div>
 
@@ -105,7 +105,7 @@ const RegisterPage: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
           {validationErrors.password && (
-            <p className="mt-1 text-xs text-red-400">{validationErrors.password[0]}</p>
+            <p className="mt-1 text-xs text-rose-600">{validationErrors.password[0]}</p>
           )}
         </div>
 
@@ -127,15 +127,15 @@ const RegisterPage: React.FC = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="btn-primary w-full py-3 mt-2"
+          className="btn-primary w-full py-2.5 font-semibold mt-2"
         >
           {isSubmitting ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-slate-400">
+      <p className="mt-8 text-center text-xs text-slate-500">
         Already have an account?{' '}
-        <Link to="/login" className="text-primary-400 hover:text-primary-300 font-medium">
+        <Link to="/login" className="text-indigo-600 hover:text-indigo-800 font-bold">
           Sign in
         </Link>
       </p>

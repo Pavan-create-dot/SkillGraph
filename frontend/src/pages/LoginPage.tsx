@@ -11,7 +11,7 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const from = (location.state as any)?.from?.pathname || '/resume';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,19 +31,19 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="card">
-      <h2 className="text-2xl font-bold text-white mb-2 text-center">Welcome Back</h2>
-      <p className="text-slate-400 text-sm text-center mb-8">
+    <div>
+      <h2 className="text-2xl font-bold text-slate-900 mb-1 text-center">Welcome Back</h2>
+      <p className="text-slate-500 text-sm text-center mb-8">
         Sign in to your SkillGraph account
       </p>
 
       {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className="mb-6 p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="label" htmlFor="email">
             Email Address
@@ -79,15 +79,15 @@ const LoginPage: React.FC = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="btn-primary w-full py-3"
+          className="btn-primary w-full py-2.5 font-semibold"
         >
           {isSubmitting ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-slate-400">
+      <p className="mt-8 text-center text-xs text-slate-500">
         Don't have an account?{' '}
-        <Link to="/register" className="text-primary-400 hover:text-primary-300 font-medium">
+        <Link to="/register" className="text-indigo-600 hover:text-indigo-800 font-bold">
           Create one now
         </Link>
       </p>
