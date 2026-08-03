@@ -101,7 +101,6 @@ export const InterviewProgressViz: React.FC<VizProps> = ({ history }) => {
   const selectedSession = processedData[selectedIdx] || processedData[processedData.length - 1];
 
   const scores = processedData.map((d) => d.score);
-  const minScore = Math.min(...scores);
   const maxScore = Math.max(...scores);
   const latestScore = scores[scores.length - 1];
   const initialScore = scores[0];

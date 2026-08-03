@@ -49,6 +49,12 @@ const SkillGraphPage: React.FC = () => {
         </Link>
       </div>
 
+      {error && (
+        <div className="p-3 bg-amber-950/40 border border-amber-800/60 rounded-xl text-amber-300 text-xs">
+          {error}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center min-h-[350px]">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
