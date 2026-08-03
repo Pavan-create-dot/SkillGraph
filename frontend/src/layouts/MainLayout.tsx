@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FileText,
   MessageSquare,
-  Network,
+  TrendingUp,
   User,
   LogOut,
   Menu,
@@ -21,13 +21,13 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Resume',         path: '/resume',      icon: <FileText size={18} /> },
   { label: 'Mock Interview', path: '/interview',   icon: <MessageSquare size={18} /> },
-  { label: 'Skill Graph',    path: '/skill-graph', icon: <Network size={18} /> },
+  { label: 'Performance Graph', path: '/skill-graph', icon: <TrendingUp size={18} /> },
 ];
 
 const PAGE_LABELS: Record<string, string> = {
   '/resume':      'Resume Analyzer',
   '/interview':   'Mock Interview',
-  '/skill-graph': 'Skill Graph',
+  '/skill-graph': 'Interview Performance Graph',
   '/profile':     'Profile Settings',
 };
 

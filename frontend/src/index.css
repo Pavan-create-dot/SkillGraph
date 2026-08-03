@@ -2,19 +2,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @theme {
-  /* Meridian — teal */
-  --color-primary-50:  #f0fdfa;
-  --color-primary-100: #ccfbf1;
-  --color-primary-200: #99f6e4;
-  --color-primary-300: #5eead4;
-  --color-primary-400: #2dd4bf;
-  --color-primary-500: #14b8a6;
-  --color-primary-600: #0d9488;
-  --color-primary-700: #0f766e;
-  --color-primary-800: #115e59;
-  --color-primary-900: #134e4a;
+  /* Meridian Theme — Deep Indigo */
+  --color-primary-50:  #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4338ca;
+  --color-primary-700: #3730a3;
+  --color-primary-800: #312e81;
+  --color-primary-900: #1e1b4b;
 
-  /* Vault — amber/gold */
+  /* Vault Theme — Amber Accent */
   --color-accent-50:  #fffbeb;
   --color-accent-100: #fef3c7;
   --color-accent-200: #fde68a;
