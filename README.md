@@ -1,189 +1,105 @@
-# SkillGraph AI – Adaptive Learning Path Engine (Foundation)
+# SkillGraph AI – Candidate Interview Readiness & Performance Platform
 
-SkillGraph AI is a scalable, production-ready adaptive learning path engine that maps user profile skills against career goals, performs gap analyses, and builds adaptive paths.
+**SkillGraph AI** is a lightweight, full-stack candidate placement preparation platform built with **React 19**, **Express.js**, **Prisma ORM**, and **Google Gemini AI**. 
 
-This repository houses the **production-ready foundation** (Phase 1) featuring clean architecture, strict database schema models (PostgreSQL + Prisma), secure authentication (JWT with automatic refresh), and structured logging.
+It is designed with a clean, modular architecture that can be easily explained in technical interviews.
 
 ---
 
-## Folder Structure
+## 🚀 Key Features (3 Core Pillars)
+
+1. **Dual-Tab Resume File Parser (`/resume`)**
+   - Drag-and-drop `.pdf`, `.docx`, and `.txt` file uploads using `multer` and `pdf-parse` v2.
+   - Extracts candidate tech stacks, experience highlights, and skill gap recommendations powered by Google Gemini AI.
+
+2. **Role-First 3-Step Placement Simulator (`/interview`)**
+   - **Step 1**: Target Role Input & Confirmation.
+   - **Step 2**: Selection of 3 Core Interview Types (*Technical & Coding*, *System Design & Architecture*, *Behavioral & HR*).
+   - **Step 3**: Interactive practice session with per-answer AI evaluation and 0–100 scoring.
+
+3. **Interview Score Trajectory Analytics (`/skill-graph`)**
+   - Interactive SVG progress graph displaying candidate score improvements over time.
+   - Session inspector detailing score breakdowns across 4 competencies (*Technical Concepts*, *Problem Solving*, *Communication*, *System Design*).
+   - Historical practice log with performance ratings (*Strong Hire*, *Hire*, *Needs Practice*).
+
+---
+
+## 📐 Architecture & Tech Stack
 
 ```text
 SkillGraph/
-├── docker-compose.yml         # Dev/Prod docker orchestration
-├── .env.example               # Root environments info
-├── backend/                   # Backend Express.js Server
-│   ├── Dockerfile             # Production multi-stage Docker build
-│   ├── .env.example           # Backend environment configuration
-│   ├── nodemon.json           # Nodemon configuration
-│   ├── package.json           # Backend dependencies and scripts
-│   ├── tsconfig.json          # Strict TypeScript config
+├── backend/                   # Node.js + Express + Prisma ORM
 │   ├── prisma/
-│   │   ├── schema.prisma      # Relational schemas & enums
-│   │   └── seed.ts            # Seed script (3 users, 20 skills, 20 edges, 2 goals)
+│   │   └── schema.prisma      # Relational User & InterviewSession models
 │   └── src/
-│       ├── app.ts             # Express app setup with middlewares
-│       ├── server.ts          # HTTP server entry & graceful shutdown
-│       ├── config/            # Database connect, logger (Pino), Env schema
-│       ├── controllers/       # HTTP Request/Response validation layers
-│       ├── middleware/        # JWT validation, Role-based authorization, Rate limiters, Error handling
-│       ├── repositories/      # Database access layers (Prisma wrappers)
-│       ├── services/          # Pure business logic layers
-│       ├── types/             # Common types, enums, express overrides
-│       ├── utils/             # ApiError, ApiResponse, asyncHandler, hashPassword
-│       └── validators/        # Zod validation schemas
-└── frontend/                  # React 19 + Vite Frontend
-    ├── tailwind.config.js     # Tailwind CSS configuration
-    ├── postcss.config.js      # PostCSS configuration
-    ├── package.json           # Frontend dependencies and scripts
-    ├── index.html             # Entry point
-    └── src/
-        ├── App.tsx            # Main app router / provider registration
-        ├── index.css          # Tailwind imports & customized design system
-        ├── main.tsx           # React bootstrap mount
-        ├── api/               # Axios apiClient & specific modules (auth, skills)
-        ├── components/        # ProtectedRoute wrapper
-        ├── contexts/          # Auth context with token automatic restore
-        ├── hooks/             # useAuth convenience hooks
-        ├── layouts/           # Auth layout & Dashboard layouts
-        ├── pages/             # Login, Register, Dashboard, Skills, Career Goals
-        └── types/             # Shared TypeScript types matching API schema
+│       ├── controllers/       # HTTP handlers (auth, user, resume, interview)
+│       ├── services/          # Business logic & Gemini AI integration (ai, resume, interview, auth)
+│       ├── middleware/        # JWT auth, rate limiter, request logger, error handler
+│       ├── routes/            # Modular API endpoints (/api/auth, /api/resume, /api/interview, /api/users)
+│       └── utils/             # ApiError, ApiResponse, asyncHandler, hashPassword
+│
+└── frontend/                  # React 19 + TypeScript + Vite
+    ├── src/
+    │   ├── api/               # Axios API client modules
+    │   ├── components/        # ProtectedRoute, ErrorBoundary, InterviewProgressViz SVG
+    │   ├── contexts/          # AuthContext & state management
+    │   ├── layouts/           # MainLayout (Top-right profile, sidebar) & AuthLayout
+    │   ├── pages/             # ResumePage, InterviewPage, SkillGraphPage, ProfilePage, Auth
+    │   └── index.css          # Meridian Indigo + Vault Amber theme tokens
 ```
+
+### Technology Choice Rationale (Interviewer Talking Points)
+- **React 19 + Vite**: Ultra-fast build times, zero legacy overhead, lightweight component architecture.
+- **Express + Prisma ORM**: Clean separation of concerns (Routes → Controllers → Services → Prisma Models).
+- **Meridian Indigo Design System**: Dark enterprise styling (`#4338CA` Meridian Indigo primary with `#F59E0B` Vault Amber status accents).
+- **Google Gemini 1.5 Flash API**: Low-latency structured JSON responses for candidate answer evaluation and resume parsing.
 
 ---
 
-## Database Schema
-
-```mermaid
-erDiagram
-    users {
-        uuid id PK
-        varchar(100) name
-        varchar(255) email UK
-        varchar(255) password
-        role role
-        timestamp created_at
-        timestamp updated_at
-    }
-    skills {
-        uuid id PK
-        varchar(200) name UK
-        varchar(100) category
-        text description
-        difficulty difficulty
-        timestamp created_at
-        timestamp updated_at
-    }
-    skill_edges {
-        uuid id PK
-        uuid parent_skill_id FK
-        uuid child_skill_id FK
-    }
-    progress {
-        uuid id PK
-        uuid user_id FK
-        uuid skill_id FK
-        float mastery
-        status status
-        timestamp updated_at
-    }
-    career_goals {
-        uuid id PK
-        varchar(200) name UK
-        text description
-    }
-
-    users ||--o{ progress : "tracks"
-    skills ||--o{ progress : "includes"
-    skills ||--o{ skill_edges : "parent_of"
-    skills ||--o{ skill_edges : "child_of"
-```
-
-### Models & Constraints
-- **User**: Contains login details and user roles (`ADMIN` or `USER`). Indexed on `email`.
-- **Skill**: Contains skills grouped by category and graded by difficulty (`BEGINNER`, `INTERMEDIATE`, `ADVANCED`). Indexed on `category` and `difficulty`.
-- **SkillEdge**: Directed graph edges representing skill dependency. A child skill depends on a parent skill.
-- **Progress**: Mastery metrics (0.0 to 100.0) and status tracking (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`).
-- **CareerGoal**: Target jobs or milestones (e.g. "Full-Stack Web Developer").
-
----
-
-## API List
-
-All API endpoints are prefixed with `/api/v1` and validate request bodies using Zod schemas.
+## 🛠️ API Reference Summary
 
 | Method | Endpoint | Auth | Description |
 |:---|:---|:---|:---|
-| **POST** | `/auth/register` | Public | Register new user. Returns user info + access & refresh token. |
-| **POST** | `/auth/login` | Public | Authenticate credentials. Returns user info + tokens. |
-| **POST** | `/auth/logout` | JWT | Logout and invalidate session. |
-| **POST** | `/auth/refresh` | Public | Generate new token pair using a valid refresh token. |
-| **GET** | `/users/profile` | JWT | Fetch authenticated user details. |
-| **GET** | `/skills` | JWT | List skills (paginated, supports filter by category). |
-| **GET** | `/skills/categories` | JWT | Fetch distinct list of skill categories. |
-| **GET** | `/career-goals` | JWT | List all available career goals. |
-| **POST** | `/career-goals/select`| JWT | Select and bind a career goal to the current user profile. |
+| **POST** | `/api/auth/register` | Public | Register new candidate profile |
+| **POST** | `/api/auth/login` | Public | Authenticate credentials and issue JWT |
+| **GET** | `/api/users/profile` | JWT | Fetch authenticated user profile |
+| **POST** | `/api/resume/analyze` | JWT | Upload resume file or text for AI skill analysis |
+| **POST** | `/api/interview/start` | JWT | Initialize a role-first mock interview session |
+| **POST** | `/api/interview/answer` | JWT | Submit answer for AI scoring & feedback |
+| **GET** | `/api/interview/history` | JWT | Fetch completed interview session history & scores |
 
 ---
 
-## Installation & Running Locally
+## 💻 Local Setup & Execution
 
-### Prerequisites
-- Node.js >= 18
-- Docker and Docker Compose
-
-### 1. Configure Environments
-Copy the example files and update any credentials:
+### 1. Install Dependencies
 ```bash
-cp backend/.env.example backend/.env
-cp .env.example .env
-```
-
-### 2. Start PostgreSQL Container
-Spin up the local database using docker-compose:
-```bash
-docker-compose up -d postgres
-```
-
-### 3. Setup Database (Prisma)
-Navigate to backend, install packages, generate Prisma Client, run migrations, and seed:
-```bash
+# Install backend dependencies
 cd backend
 npm install
-npx prisma migrate dev --name init
-npx prisma db seed
-```
 
-This seeds:
-- **1 Admin Account**: `admin@skillgraph.ai` (password: `Password123!`)
-- **2 User Accounts**: `alex@example.com`, `jordan@example.com` (password: `Password123!`)
-- **20 Skills & 20 Directed Graph Edges**
-- **2 Career Goals**
-
-### 4. Run Development Servers
-
-**Start Backend Dev Server:**
-```bash
-# inside /backend
-npm run dev
-```
-
-**Start Frontend Dev Server:**
-```bash
+# Install frontend dependencies
 cd ../frontend
 npm install
+```
+
+### 2. Configure Environment Variables
+Create `.env` inside `backend/`:
+```env
+PORT=5000
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="your-super-secret-jwt-key"
+GEMINI_API_KEY="your-gemini-api-key"
+```
+
+### 3. Initialize Database & Run
+```bash
+# In /backend
+npx prisma db push
+npm run dev
+
+# In /frontend (separate terminal)
 npm run dev
 ```
-Open `http://localhost:5173` to interact with the UI.
 
----
-
-## Future Roadmap
-- **Phase 2: Knowledge Graph Engine** — Implement React Flow interactive layout, DFS/BFS graph traversals, and edge validation in database.
-- **Phase 3: Skill Gap Analysis** — Calculate mastery gap between current skills and the target career goal requirements.
-- **Phase 4: Adaptive Learning Paths** — Generate dynamic learning roadmaps using Dijkstra / topological sorting algorithms.
-- **Phase 5: AI Micro Lessons & Resume Skill Extraction** — OpenAI/Claude API integration to extract skills from PDF resumes and generate micro lessons.
-
-<!-- trigger CI/CD -->
-
-<!-- fix: force backend redeploy with correct CORS and DB settings -->
+Open `http://localhost:5173` to launch the application.
