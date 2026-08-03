@@ -71,6 +71,31 @@ export class AuthService {
     return { user: safeUser, tokens };
   }
 
+  async googleLogin(email: string, name?: string): Promise<AuthResult> {
+    let user = await userRepository.findByEmail(email);
+
+    if (!user) {
+      const randomPassword = await hashPassword(`GoogleAuth_${Math.random().toString(36).slice(2)}_${Date.now()}`);
+      user = await userRepository.create({
+        name: name || email.split('@')[0],
+        email,
+        password: randomPassword,
+        role: Role.USER,
+      });
+    }
+
+    const tokens = tokenService.generateTokenPair({
+      id: user.id,
+      email: user.email,
+      role: user.role as Role,
+    });
+
+    const safeUser = { ...user };
+    delete (safeUser as { password?: string }).password;
+
+    return { user: safeUser, tokens };
+  }
+
   async refreshToken(input: RefreshTokenInput): Promise<TokenPair> {
     const isRevoked = await blacklistedTokenRepository.isBlacklisted(input.refreshToken);
     if (isRevoked) {

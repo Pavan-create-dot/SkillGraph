@@ -23,6 +23,12 @@ export const authApi = {
     return data;
   },
 
+  /** Exchange a Google ID token (from Google Identity Services) for our app tokens */
+  googleLogin: async (credential: string): Promise<ApiResponse<AuthResult>> => {
+    const { data } = await apiClient.post<ApiResponse<AuthResult>>('/auth/google', { credential });
+    return data;
+  },
+
   logout: async (): Promise<ApiResponse<null>> => {
     const { data } = await apiClient.post<ApiResponse<null>>('/auth/logout');
     return data;

@@ -35,3 +35,40 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
 
   res.status(200).json(ApiResponse.ok('Token refreshed successfully', tokens));
 });
+
+export const googleLogin = asyncHandler(async (req: Request, res: Response) => {
+  const { credential } = req.body as { credential: string };
+
+  if (!credential) {
+    return res.status(400).json({ success: false, message: 'Google credential token is required' });
+  }
+
+  // Import dynamically to avoid breaking the build if google-auth-library is not installed
+  const { OAuth2Client } = await import('google-auth-library');
+  const env = (await import('../config/env')).env;
+
+  const clientId = env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return res.status(500).json({ success: false, message: 'Google Sign-In is not configured on this server' });
+  }
+
+  const client = new OAuth2Client(clientId);
+
+  let payload: { email?: string; name?: string; given_name?: string; family_name?: string };
+  try {
+    const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId });
+    payload = ticket.getPayload() ?? {};
+  } catch {
+    return res.status(401).json({ success: false, message: 'Invalid Google token' });
+  }
+
+  if (!payload.email) {
+    return res.status(400).json({ success: false, message: 'Google account has no email' });
+  }
+
+  const name = payload.name || `${payload.given_name ?? ''} ${payload.family_name ?? ''}`.trim() || payload.email.split('@')[0];
+  const result = await authService.googleLogin(payload.email, name);
+
+  return res.status(200).json(ApiResponse.ok('Google login successful', result));
+});
+

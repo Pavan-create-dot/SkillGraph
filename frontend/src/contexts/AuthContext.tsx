@@ -42,6 +42,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential: string) => {
+    const response = await authApi.googleLogin(credential);
+    if (response.data) {
+      localStorage.setItem('accessToken', response.data.tokens.accessToken);
+      localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
+      setUser(response.data.user);
+    }
+  }, []);
+
   const register = useCallback(async (name: string, email: string, password: string) => {
     const response = await authApi.register({ name, email, password });
     if (response.data) {
@@ -76,6 +85,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginWithGoogle,
         register,
         logout,
         updateProfile,

@@ -17,4 +17,8 @@ router.post('/logout', authenticate, authController.logout);
 // POST /api/v1/auth/refresh
 router.post('/refresh', authRateLimiter, authController.refreshToken);
 
+// POST /api/v1/auth/google  — accepts a Google ID token credential from the frontend
+router.post('/google', authRateLimiter, authController.googleLogin);
+
 export default router;
+

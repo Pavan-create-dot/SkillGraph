@@ -24,6 +24,7 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 
   GEMINI_API_KEY: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
